@@ -233,6 +233,7 @@ class Build:
             'id': self.script_id, 'kind': self.kind[:-1].lower(), 'name': self.name,
             'family': self.family, 'blurb': self.blurb, 'styles': self.styles,
             'controls': self.controls_doc, 'defaults': self.defaults, 'tags': self.tags,
+            'fields': getattr(self, 'fields', []),
         }
 
 

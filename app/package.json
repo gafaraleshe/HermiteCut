@@ -1,0 +1,48 @@
+{
+    "name": "hermitecut",
+    "productName": "HermiteCut",
+    "version": "2.0.0",
+    "description": "The editing toolkit for DaVinci Resolve: effects, transitions, titles, Grid Reveal, sound, motion, beats and captions.",
+    "author": "Gafar (Hermite Labs)",
+    "homepage": "https://cut.hermitelabs.com",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gafaraleshe/HermiteCut.git"
+    },
+    "main": "main.js",
+    "license": "MIT",
+    "scripts": {
+        "start": "electron .",
+        "dist:win": "electron-builder --win --publish never",
+        "dist:mac": "electron-builder --mac --publish never"
+    },
+    "devDependencies": {
+        "electron": "33.2.1",
+        "electron-builder": "25.1.8"
+    },
+    "build": {
+        "appId": "com.hermitelabs.cut",
+        "productName": "HermiteCut",
+        "copyright": "Copyright © 2026 Gafar / Hermite Labs",
+        "asar": false,
+        "directories": { "output": "dist", "buildResources": "build-res" },
+        "files": ["main.js", "preload.js", "package.json", "core/**/*", "hosts/**/*"],
+        "extraResources": [{ "from": "resources", "to": "hermitecut" }],
+        "afterPack": "build-res/afterpack.js",
+        "win": { "target": [{ "target": "nsis", "arch": ["x64"] }], "icon": "build-res/icon.png" },
+        "nsis": {
+            "oneClick": true,
+            "perMachine": false,
+            "shortcutName": "HermiteCut",
+            "artifactName": "HermiteCut-Windows-Setup.${ext}"
+        },
+        "mac": {
+            "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+            "icon": "build-res/icon.png",
+            "category": "public.app-category.video",
+            "identity": null,
+            "hardenedRuntime": false
+        },
+        "dmg": { "artifactName": "HermiteCut-Mac-${arch}.${ext}" }
+    }
+}

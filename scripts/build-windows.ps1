@@ -6,13 +6,14 @@
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 
-$version  = (Get-Content plugin/package.json -Raw | ConvertFrom-Json).version
+$version  = (Get-Content app/package.json -Raw | ConvertFrom-Json).version
 $name     = 'HermiteCut'
 $pluginId = 'com.hermitelabs.cut'
 $stage    = "dist/$name"
 
 Remove-Item -Recurse -Force installer/payload, dist -ErrorAction SilentlyContinue
-Copy-Item plugin installer/payload -Recurse
+if (-not (Test-Path build/plugin/$pluginId/main.js)) { python scripts/assemble.py }
+Copy-Item build/plugin/$pluginId installer/payload -Recurse
 Remove-Item installer/payload/devtools.flag, installer/payload/WorkflowIntegration.node -ErrorAction SilentlyContinue
 
 New-Item -ItemType Directory -Force "$stage/plugin" | Out-Null
@@ -27,5 +28,5 @@ Copy-Item installer/package/* $stage
 Copy-Item LICENSE "$stage/LICENSE.txt"
 Copy-Item THIRD_PARTY_NOTICES.md "$stage/THIRD_PARTY_NOTICES.txt"
 
-Compress-Archive -Path $stage -DestinationPath "dist/$name-v$version-windows.zip" -Force
-Write-Host "Built dist/$name-v$version-windows.zip"
+Compress-Archive -Path $stage -DestinationPath "dist/$name-v$version-windows-panel.zip" -Force
+Write-Host "Built dist/$name-v$version-windows-panel.zip"

@@ -260,3 +260,44 @@ body.compact .ease-graph { height: 190px; }
 .motion-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .align-wrap { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .preset-grid button { aspect-ratio: 1.25; }
+
+/* ---------- HermiteCut 2 modules ---------- */
+.card.wide { flex: 2 1 560px; max-width: 860px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { border: 1px solid var(--line-2); background: transparent; color: var(--faint); border-radius: 30px; padding: 4px 10px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.chip:hover { color: var(--text); }
+.chip.on { background: var(--accent-fill); border-color: rgba(var(--accent-rgb), .45); color: var(--text); }
+.chip.mine { border-style: dashed; }
+input[type=search], input[type=text] { background: var(--well); border: 1px solid var(--line); border-radius: 9px; padding: 7px 10px; color: var(--text); outline: none; }
+input[type=search]:focus, input[type=text]:focus { border-color: rgba(var(--accent-rgb), .5); }
+.tpl-wrap { display: grid; grid-template-columns: 1.15fr 1fr; gap: 10px; min-height: 260px; }
+.tpl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; align-content: start; max-height: 340px; overflow-y: auto; padding-right: 2px; }
+.tpl { position: relative; text-align: left; border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 8px 26px 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; color: var(--muted); }
+.tpl:hover { border-color: var(--line-2); color: var(--text); }
+.tpl.on { border-color: rgba(var(--accent-rgb), .6); background: var(--accent-fill); color: var(--text); }
+.tpl-n { font-size: 12px; font-weight: 500; }
+.tpl-f { font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.star { position: absolute; top: 7px; right: 8px; color: var(--surface-3); font-size: 12px; cursor: pointer; }
+.star.on, .star:hover { color: var(--accent); }
+.tpl-opts { background: var(--well); border: 1px solid var(--line); border-radius: 11px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.tpl-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+.grid-preview { width: 100%; aspect-ratio: 16 / 9; display: block; }
+.snd-list, .asset-list { display: flex; flex-direction: column; gap: 3px; max-height: 300px; overflow-y: auto; }
+.snd, .asset { position: relative; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 8px; border: 1px solid transparent; }
+.snd:hover, .asset:hover { background: var(--surface-2); border-color: var(--line); }
+.snd.playing { border-color: rgba(var(--accent-rgb), .5); background: var(--accent-fill); }
+.snd .star { position: static; }
+.snd-n, .an { flex: 1; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snd-d { font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.btn.sm { padding: 4px 8px; font-size: 11px; }
+.folder { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.folder .fi { width: 14px; height: 14px; color: var(--accent); }
+.folder .fp { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+.asset .badge { font-size: 8.5px; letter-spacing: .1em; padding: 2px 5px; border-radius: 5px; background: var(--surface-3); color: var(--muted); }
+.asset .zip { font-size: 9px; color: var(--faint); border: 1px solid var(--line-2); border-radius: 5px; padding: 1px 4px; }
+.su-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.su-row:last-child { border-bottom: 0; }
+.su-t { flex: 1; font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
+.su-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line-2); flex: none; }
+.su-dot.ok { background: var(--ok); box-shadow: 0 0 10px rgba(61, 214, 160, .5); }
+@media (max-width: 720px) { .tpl-wrap { grid-template-columns: 1fr; } }

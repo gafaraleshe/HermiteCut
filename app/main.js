@@ -1,5 +1,13 @@
-// HermiteCut — main process
-// Workflow Integration plugin for DaVinci Resolve Studio (Electron).
+// HermiteCut — main process (Electron).
+//
+// The same file runs in two ways:
+//   - as the Resolve panel: Resolve Studio loads it as a Workflow Integration
+//     plugin, with WorkflowIntegration.node beside it;
+//   - as the standalone HermiteCut app (Windows / macOS), which reaches Resolve
+//     through fuscript (hosts/resolve/bridge.lua).
+// The UI (core/ui) and host-independent logic (core/lib) are shared; all
+// Resolve-specific code lives in hosts/resolve, behind one adapter, so other
+// hosts can be added later (docs/MULTI_HOST_PLAN.md).
 'use strict';
 
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
@@ -7,7 +15,17 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const PLUGIN_ID = 'com.hermitelabs.cut';
+// Layout: assembled builds keep core/ and hosts/ next to main.js; in the repo
+// they sit one level up (app/main.js).
+const ROOT = fs.existsSync(path.join(__dirname, 'core')) ? __dirname : path.join(__dirname, '..');
+function resourcesDir() {
+    const candidates = [
+        process.resourcesPath && path.join(process.resourcesPath, 'hermitecut'),
+        path.join(__dirname, 'resources'),
+        path.join(ROOT, 'build', 'resources')
+    ].filter(Boolean);
+    return candidates.find(p => fs.existsSync(path.join(p, 'HermiteCut-manifest.json'))) || candidates[candidates.length - 1];
+}
 
 // Developer mode: create an empty "devtools.flag" file next to main.js to enable
 // Chromium remote debugging on 127.0.0.1:9339 (used for automated testing).
@@ -18,34 +36,9 @@ try {
     }
 } catch (e) { /* ignore */ }
 
-let WorkflowIntegration = null;
 let pinned = true;
 let mainWindow = null;
-let actions = null;
-
-function loadBridge() {
-    try {
-        WorkflowIntegration = require('./WorkflowIntegration.node');
-    } catch (e) {
-        WorkflowIntegration = null;
-        return 'WorkflowIntegration.node could not be loaded: ' + e.message;
-    }
-    return null;
-}
-
-let resolveObj = null;
-async function getResolve() {
-    if (resolveObj) return resolveObj;
-    if (!WorkflowIntegration) {
-        const err = loadBridge();
-        if (err) throw new Error(err);
-    }
-    const ok = await WorkflowIntegration.Initialize(PLUGIN_ID);
-    if (!ok) throw new Error('Could not connect to DaVinci Resolve (Initialize failed).');
-    resolveObj = await WorkflowIntegration.GetResolve();
-    if (!resolveObj) throw new Error('Could not get the Resolve object.');
-    return resolveObj;
-}
+let host = null;
 
 function logFile() {
     return path.join(app.getPath('userData'), 'hermitecut-log.txt');
@@ -57,11 +50,13 @@ function log(msg) {
 }
 
 function registerIpc() {
-    actions = require('./lib/actions.js');
-    actions.init({ getResolve, log, app });
+    host = require(path.join(ROOT, 'hosts', 'resolve', 'index.js'))
+        .create({ appDir: __dirname, resourcesDir: resourcesDir(), log, app });
+    host.api.hostInfo = async () => ({ host: host.id, hostName: host.name, mode: host.mode(),
+        version: app.getVersion ? app.getVersion() : '', platform: process.platform });
 
     ipcMain.handle('hc:call', async (_ev, name, args) => {
-        const fn = actions.api[name];
+        const fn = host.api[name];
         if (!fn) return { ok: false, error: 'Unknown action: ' + name };
         try {
             const res = await fn(args || {});
@@ -70,7 +65,7 @@ function registerIpc() {
             const msg = (e && e.message) ? e.message : String(e);
             log('ERROR ' + name + ': ' + msg + (e && e.stack ? '\n' + e.stack : ''));
             // A stale Resolve handle (e.g. Resolve restarted) -> reset once.
-            if (/not initialized|invalid|disconnected/i.test(msg)) resolveObj = null;
+            if (/not initialized|invalid|disconnected|closed|not connected/i.test(msg)) host.reset();
             return { ok: false, error: msg };
         }
     });
@@ -146,7 +141,7 @@ function createWindow() {
         title: 'HermiteCut',
         alwaysOnTop: true,
         show: false,
-        icon: path.join(__dirname, 'img', 'icon.png'),
+        icon: path.join(ROOT, 'core', 'ui', 'img', 'icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -159,14 +154,14 @@ function createWindow() {
     mainWindow.once('ready-to-show', () => { mainWindow.show(); applyPin(); setTimeout(applyPin, 600); });
     ['show', 'restore', 'blur'].forEach(ev => mainWindow.on(ev, () => setTimeout(applyPin, ev === 'blur' ? 30 : 0)));
     mainWindow.on('close', () => {
-        try { if (WorkflowIntegration) WorkflowIntegration.CleanUp(); } catch (e) { /* ignore */ }
+        try { if (host) host.cleanup(); } catch (e) { /* ignore */ }
         app.quit();
     });
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         if (/^https?:\/\//.test(url)) shell.openExternal(url);
         return { action: 'deny' };
     });
-    mainWindow.loadFile('index.html');
+    mainWindow.loadFile(path.join(ROOT, 'core', 'ui', 'index.html'));
 }
 
 app.whenReady().then(() => {

@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const LUA = require('./lua.js');
-const MOTION = require('./motion.js');
+const MOTION = require('../../core/lib/motion.js');
 
 let H = null; // { getResolve, log, app }
 
@@ -875,6 +875,11 @@ api.exportTimeline = async ({ file, kind }) => {
     return { file };
 };
 api.desktopPath = async ({ name }) => path.join(os.homedir(), 'Desktop', name || '');
+
+require('./studio.js').register(api, {
+    get H() { return H; }, R, project, timeline, selected, runLua, voidCall, arr, has, clean, geom, playhead,
+    framesToTc, tcToFrames, compsForItem, trackOf, LUA, sleep
+});
 
 module.exports = {
     init(h) { H = h; },

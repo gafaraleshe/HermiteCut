@@ -6,23 +6,31 @@ save screenshots of each tool set to docs/images/.
     python tools/dev/screenshot.py            # main, motion, audio, all
     python tools/dev/screenshot.py motion     # one set
 """
-import asyncio, os, re, shutil, sys, tempfile
+import asyncio, json, os, re, shutil, sys, tempfile
 from pathlib import Path
 from playwright.async_api import async_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
-PLUGIN = ROOT / 'plugin'
+UI = ROOT / 'core' / 'ui'
+BUILD = ROOT / 'build'
 OUT = ROOT / 'docs' / 'images'
-SETS = sys.argv[1:] or ['main', 'motion', 'audio', 'all']
+SETS = sys.argv[1:] or ['main', 'motion', 'audio', 'fx', 'sound', 'shorts', 'setup', 'all']
 
 
 def stage(tmp: Path) -> Path:
     site = tmp / 'site'
-    shutil.copytree(PLUGIN, site)
+    shutil.copytree(UI, site)
     shutil.copy(Path(__file__).with_name('mock.js'), site / 'mock.js')
+    # real catalogue data for the mock, when the pack and sounds have been built
+    cat = {'templates': [], 'sounds': [], 'sfxDir': ''}
+    for key, f in (('templates', BUILD / 'HermiteCut-manifest.json'), ('sounds', BUILD / 'sfx' / 'sfx.json')):
+        if f.exists():
+            data = json.loads(f.read_text(encoding='utf-8'))
+            cat[key] = data['templates' if key == 'templates' else 'sounds']
+    (site / 'mockdata.js').write_text('window.HC_MOCK_CATALOGUE = ' + json.dumps(cat) + ';', encoding='utf-8')
     html = (site / 'index.html').read_text(encoding='utf-8')
     html = re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>', '', html)
-    html = html.replace('<script src="js/math.js"></script>', '<script src="mock.js"></script>\n<script src="js/math.js"></script>')
+    html = html.replace('<script src="js/math.js"></script>', '<script src="mockdata.js"></script>\n<script src="mock.js"></script>\n<script src="js/math.js"></script>')
     (site / 'index.html').write_text(html, encoding='utf-8')
     return site / 'index.html'
 

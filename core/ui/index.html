@@ -20,6 +20,10 @@
         <button data-set="main" class="on">Main tools</button>
         <button data-set="motion">Motion</button>
         <button data-set="audio">Beats &amp; Captions</button>
+        <button data-set="fx">FX</button>
+        <button data-set="sound">Sound</button>
+        <button data-set="shorts">Shorts</button>
+        <button data-set="setup">Setup</button>
         <button data-set="all">All</button>
       </div>
       <button class="ibtn" id="btnSettings" data-tip="Settings" data-icon="gear"></button>
@@ -215,6 +219,100 @@
       </div>
       <div class="card-f"><button class="cta glow" id="cCreate"><span data-icon="caption"></span>Create captions</button></div>
     </section>
+
+    <!-- ============ Templates (effects, time FX, transitions, titles) ============ -->
+    <section class="card wide" data-mod="templates" data-sets="fx,all">
+      <div class="card-h"><span class="ic" data-icon="spark"></span><h2>Templates</h2><span class="spacer"></span>
+        <button class="ibtn" id="tUndo" data-tip="Remove HermiteCut effects from the selected clips" data-icon="undo"></button>
+      </div>
+      <div class="card-b">
+        <div class="seg" id="tTabs"><button data-v="effects" class="on">Effects</button><button data-v="timefx">Time FX</button><button data-v="transitions">Transitions</button><button data-v="titles">Titles</button><button data-v="favs">★</button></div>
+        <input type="search" id="tSearch" placeholder="Search templates…">
+        <div class="chips" id="tFamilies"></div>
+        <div class="tpl-wrap"><div class="tpl-list" id="tList"></div><div class="tpl-opts" id="tOpts"></div></div>
+      </div>
+      <div class="card-f"><button class="cta" id="tApply" disabled><span data-icon="bolt"></span>Apply</button></div>
+    </section>
+
+    <!-- ============ Grid Reveal ============ -->
+    <section class="card" data-mod="grid" data-sets="fx,all">
+      <div class="card-h"><span class="ic" data-icon="grid"></span><h2>Grid Reveal</h2><span class="spacer"></span>
+        <button class="ibtn" id="gSave" data-tip="Save these settings as my preset" data-icon="plus"></button>
+      </div>
+      <div class="card-b">
+        <div class="well"><span class="cap">Live preview</span><canvas class="grid-preview" id="gPreview"></canvas></div>
+        <div class="chips" id="gLooks"></div>
+        <div class="label">Cells across <span class="val" id="gCellsV">14</span></div><input type="range" id="gCells" min="2" max="40" value="14">
+        <div class="row"><div><div class="label">Order</div><select id="gOrder"></select></div><div><div class="label">Cells</div><select id="gAnim"></select></div></div>
+        <div class="label">Stagger</div><input type="range" id="gSpread" min="0" max="0.98" step="0.01" value="0.75">
+        <div class="row"><label class="check"><input type="checkbox" id="gLines" checked> Grid lines</label><label class="check"><input type="checkbox" id="gFlash"> White flash</label></div>
+        <div class="row"><div><div class="label">Duration (frames)</div><input type="number" id="gDur" min="4" max="120" value="24" style="width:100%"></div><label class="check fixed"><input type="checkbox" id="gSfx"> Add tick SFX</label></div>
+        <div class="hint">Select the clip before a cut (clips need handles). <b>Hand Track</b> makes the subject drive the cells: put the next shot on the track below, and add a Magic Mask for the alpha matte (Studio), or use the luma matte in Resolve free.</div>
+      </div>
+      <div class="card-f"><button class="cta glow" id="gApply"><span data-icon="grid"></span>Add Grid Reveal</button><button class="btn" id="gTrack">Apply Hand Track to selected clip</button></div>
+    </section>
+
+    <!-- ============ Sound ============ -->
+    <section class="card" data-mod="sound" data-sets="sound,all">
+      <div class="card-h"><span class="ic" data-icon="speaker"></span><h2>Sound</h2></div>
+      <div class="card-b">
+        <input type="search" id="sSearch" placeholder="Search sounds…">
+        <div class="chips" id="sCats"></div>
+        <div class="snd-list" id="sList"></div>
+        <div class="label">Place at</div>
+        <div class="seg" id="sWhere"><button data-v="playhead" class="on">Playhead</button><button data-v="cuts">Every cut</button><button data-v="markers">Every marker</button></div>
+        <div class="hint">Made in-house: whooshes, risers, impacts, shutters, glitches and more, free to use in anything you make.</div>
+      </div>
+    </section>
+
+    <!-- ============ Library ============ -->
+    <section class="card" data-mod="library" data-sets="sound,all">
+      <div class="card-h"><span class="ic" data-icon="folder"></span><h2>Library</h2><span class="spacer"></span><span class="hint" id="lCount"></span>
+        <button class="ibtn" id="lAdd" data-tip="Add a folder" data-icon="plus"></button>
+      </div>
+      <div class="card-b">
+        <div id="lFolders"></div>
+        <div class="seg" id="lTypes"><button data-v="all" class="on">All</button><button data-v="lut">LUTs</button><button data-v="overlay">Overlays</button><button data-v="audio">Audio</button><button data-v="drfx">Packs</button></div>
+        <input type="search" id="lSearch" placeholder="Search your files…">
+        <div class="asset-list" id="lList"></div>
+      </div>
+      <div class="card-f"><button class="cta" id="lIndex"><span data-icon="refresh"></span>Index folders</button></div>
+    </section>
+
+    <!-- ============ Captions+ ============ -->
+    <section class="card" data-mod="captionsplus" data-sets="shorts,audio,all">
+      <div class="card-h"><span class="ic" data-icon="caption"></span><h2>Captions+</h2></div>
+      <div class="card-b">
+        <div class="label">Title style</div><select id="cpStyle"></select>
+        <div class="label">Longest phrase <span class="val" id="cpMaxV">5 s</span></div><input type="range" id="cpMax" min="1" max="6" step="0.5" value="5">
+        <div class="hint">Turns the subtitle track (from <b>Captions</b> or an .srt) into animated titles, one per phrase, on a track above. Edit any of them in the Inspector afterwards.</div>
+      </div>
+      <div class="card-f"><button class="cta" id="cpGo"><span data-icon="caption"></span>Animate captions</button></div>
+    </section>
+
+    <!-- ============ Shorts ============ -->
+    <section class="card" data-mod="shorts" data-sets="shorts,all">
+      <div class="card-h"><span class="ic" data-icon="phone"></span><h2>Shorts</h2></div>
+      <div class="card-b">
+        <label class="check"><input type="checkbox" id="shReframe" checked> Smart Reframe every clip (Studio)</label>
+        <div class="hint">Makes a copy of this timeline at <b>1080 × 1920</b> with clips scaled to fill, so the original stays untouched. Keep text out of the top 15 % and bottom 25 %, where apps put their buttons.</div>
+        <button class="btn" id="shReframeSel">Smart Reframe selected clips</button>
+      </div>
+      <div class="card-f"><button class="cta" id="shDup"><span data-icon="phone"></span>Create 9:16 version</button></div>
+    </section>
+
+    <!-- ============ Setup ============ -->
+    <section class="card" data-mod="setup" data-sets="setup,all">
+      <div class="card-h"><span class="ic" data-icon="wrench"></span><h2>Setup</h2><span class="spacer"></span>
+        <button class="ibtn" id="suCheck" data-tip="Check again" data-icon="refresh"></button>
+      </div>
+      <div class="card-b">
+        <div class="hint" id="suMode"></div>
+        <div id="suList"></div>
+        <div class="hint">After installing templates or the panel, restart DaVinci Resolve once.</div>
+      </div>
+      <div class="card-f"><button class="cta glow" id="suAll"><span data-icon="wrench"></span>Install everything</button></div>
+    </section>
   </main>
 </div>
 
@@ -232,7 +330,7 @@
     <div class="label">Custom “Main tools” set</div>
     <div class="mod-toggles" id="sMods"></div>
     <div class="row"><button class="btn" id="sLog">Open log file</button><button class="btn" id="sReset">Reset all settings</button></div>
-    <div class="about">HermiteCut 1.0.0 · a Workflow Integration plugin for DaVinci Resolve Studio, by Hermite Labs.<br>
+    <div class="about">HermiteCut 2.0.0 · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
       Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1).<br>
       Open from <b>Workspace → Workflow Integrations → HermiteCut</b>.</div>
   </div>
@@ -247,6 +345,7 @@
 <script src="js/bounce.js"></script>
 <script src="js/beats.js"></script>
 <script src="js/captions.js"></script>
+<script src="js/studio.js"></script>
 <script src="js/settings.js"></script>
 </body>
 </html>
