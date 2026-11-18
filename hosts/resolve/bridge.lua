@@ -40,6 +40,9 @@ function M.encode(v, handle_of)
     if v % 1 == 0 and v > -1e15 and v < 1e15 then return string.format('%d', v) end
     return string.format('%.17g', v)
   elseif ty == 'string' then return '"' .. esc(v) .. '"'
+  elseif ty == 'table' and getmetatable(v) ~= nil and handle_of then
+    -- Resolve objects: userdata, or tables with a metatable in some builds
+    return '{"$h":' .. handle_of(v) .. '}'
   elseif ty == 'table' then
     local arr, n = is_array(v)
     local out = {}
