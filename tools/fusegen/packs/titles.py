@@ -103,6 +103,7 @@ class Title:
         flick = f'(1 - Controls.Flicker*0.5*(1 + {jitter(2)})*iif(Controls.Vis < 0.999, 1, 0.25))'
         out = merge(b, 'Opacity', clear, soft, blend=f'{clamp01("Controls.Vis")} * {flick}')
 
+        b.fields = [{'key': key + 'Text', 'label': field} for key, field in self.lines if field]
         # --- Inspector
         b.begin('Text')
         for key, field in self.lines:

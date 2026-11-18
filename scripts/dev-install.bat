@@ -2,7 +2,7 @@
 rem Copy plugin\ straight into DaVinci Resolve's plugin folder for quick testing.
 rem Run from an elevated (administrator) prompt, then restart Resolve.
 setlocal
-set "SRC=%~dp0..\plugin"
+set "SRC=%~dp0..\build\plugin\com.hermitelabs.cut"
 set "ROOT=%PROGRAMDATA%\Blackmagic Design\DaVinci Resolve\Support"
 set "PLUGINS=%ROOT%\Workflow Integration Plugins"
 set "DST=%PLUGINS%\com.hermitelabs.cut"

@@ -242,6 +242,21 @@ function wrap(body, undoName) {
 
 module.exports = {
     toLua,
+    // Set inputs on the newest HermiteCut template instance in this comp
+    // (the macro tool that has an input called `probe`).
+    setTemplateInputs(probe, values) {
+        return wrap(
+            'local probe, vals = ' + toLua(probe) + ', ' + toLua(values) + '\n' +
+            'local found = nil\n' +
+            'for _, t in pairs(comp:GetToolList(false) or {}) do\n' +
+            '  local ok, v = pcall(function() return t:GetInput(probe) end)\n' +
+            '  if ok and v ~= nil then found = t end\n' +
+            'end\n' +
+            'if not found then HC_fail("template not found in this clip") return end\n' +
+            'local n = 0\n' +
+            'for k, v in pairs(vals) do if pcall(function() found:SetInput(k, v) end) then n = n + 1 end end\n' +
+            'HC_ok(n)', 'HermiteCut settings');
+    },
     info() {
         return wrap('local s, e = HC.range()\nHC_ok(s .. "," .. e)');
     },
