@@ -17,9 +17,11 @@ linked docs. Keep it up to date when decisions change.
     with seven tools (Ease, Align, Actions, Motion, Bounce, Beats, Captions) and
     a Windows installer. It was built and tested on the owner's Windows PC with
     Resolve Studio 21.2.
-  - **v2.0** is in development. The foundations are verified and the template
-    generator exists. The template packs, SFX, standalone app and packaging are
-    still to do. Section 9 has the plan.
+  - **v2.0** is in development. The foundations are verified. The template
+    pack (step 6) is **generated and passes the offline checks**, but it has
+    **not yet been run inside Resolve**: that needs the owner's PC (see step 6
+    below). SFX, the standalone app and packaging are still to do. Section 9
+    has the plan.
 - **Docs:** [README](README.md) · [Install](docs/INSTALL.md) ·
   [User guide](docs/USER_GUIDE.md) · [Architecture](docs/ARCHITECTURE.md) ·
   [Building & testing](docs/BUILDING.md) ·
@@ -78,10 +80,15 @@ linked docs. Keep it up to date when decisions change.
   - hermitelabs.com/cut currently shows a staged plan: **Hermite Motion**
     (presets, easing editor, speed ramps), **Hermite Subs** (on-device
     transcription), **Hermite AI** (local models) and **Hermite API** (cloud).
-  - The page says a 7-macro `.drfx` preset pack and a Resolve bridge script
-    were built for Hermite Motion. That work probably lives in the owner's
-    `gafaraleshe/HermiteLabs` repo. **Check it and merge** so there is one
-    HermiteCut.
+  - The 7-macro Hermite Motion pack lived in `gafaraleshe/HermiteLabs`
+    (`fusion-macros/`). It is **merged** into the HermiteCut pack: Slide In
+    Left / Right / Up / Down became **Slide** with a *Side* control, and Pop
+    In, Ken Burns and Fade Move became **Pop**, **Ken Burns** and **Fade
+    Move**. They now use the shared timing, so they work on trimmed clips. The
+    old macros used keyframes at frame 0, which a trimmed clip never reaches.
+  - The website lives in `gafaraleshe/HermiteLabs` under `site/`. `/cut` is the
+    HermiteCut product page. Its template list (`site/data/cut-templates.json`)
+    is exported from `build/HermiteCut-manifest.json`.
   - Sister products are HermiteFlow (billing) and HermiteMind (AI). The website
     uses the "Clay" design system.
 
@@ -94,7 +101,11 @@ installer/           Go Windows installer (main.go), files shipped beside it (pa
 .github/workflows/   release.yml: builds and publishes the Windows release
 scripts/             build-windows.sh / .ps1, dev-install.bat
 tools/fusegen/       Python → Fusion .setting / .drfx generator (v2 templates)
-tools/dev/           screenshot.py + mock.js, make_test_clips.sh, frametools.py, cdp.py
+  packs/             common.py (timing, controls, helpers) + effects, timefx, transitions, titles
+  build_pack.py      builds build/HermiteCut.drfx + manifest; check_pack.py offline checks
+  install_pack.py    copies the pack into Resolve's Templates folder
+tools/dev/           screenshot.py + mock.js, make_test_clips.sh, frametools.py, cdp.py,
+                     preflight.py (pre-step-6 checks), test_pack.py (tests every template in Resolve)
 docs/                documentation and screenshots
 ```
 
@@ -107,11 +118,18 @@ python tools/dev/screenshot.py            # renders the UI with a mock bridge; m
 scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows.zip (needs Go)
 # releases: GitHub Actions > Release > Run workflow (builds the zip, tags v<ver>, publishes the release)
 python tools/fusegen/examples/dev_pack.py # build/HermiteCut Dev.drfx
+python tools/fusegen/build_pack.py        # build/HermiteCut.drfx (+ offline checks, manifest)
 tools/dev/make_test_clips.sh              # build/testmedia/CLIP_A/B/C.mp4
 
 # Windows, against a live Resolve (admin prompt, Resolve closed)
 scripts\dev-install.bat
 python tools/dev/cdp.py status            # needs devtools.flag next to the installed main.js
+
+# the template pack, on the PC with Resolve open (scratch project)
+python tools/dev/preflight.py             # the "Before step 6" checks
+python tools/fusegen/build_pack.py && python tools/fusegen/install_pack.py   # then restart Resolve
+python tools/dev/test_pack.py --make-clips   # tests all 77, writes build/pack-test/report.md + thumbnails
+python tools/fusegen/build_pack.py && python tools/fusegen/install_pack.py   # pack now has thumbnails
 ```
 
 ## 6. The owner's setup
@@ -253,19 +271,41 @@ items off in the ROADMAP status table.
    It should print a 21.x version.
 4. Python 3 is on PATH, for `tools/fusegen` and the frame checks.
 
-6. **Template pack (`HermiteCut.drfx`).**
-   - Extend `tools/fusegen` with one pack script per family:
-     `tools/fusegen/packs/{effects,timefx,transitions,titles}.py` and a
-     `build_pack.py` that zips everything.
-   - Shared controls on every effect: *Apply at* (Post / Pre / Both / Whole),
-     *Frames*, *Curve*, *Strength*, *Seed*.
-   - **Slow Shutter:** shutter angles 180 / 360 / 720 / 1440°, made from
-     `TimeSpeed` taps averaged with Merges.
-   - **Thumbnails:** real renders. Apply each template to `CLIP_A` in Resolve,
-     grab frames and save them as `<Name>.png`.
-   - **Verify each template** on the test timeline with
-     `tools/dev/frametools.py`. The frame must change inside the window and
-     stay identical outside it, and transitions must blend A into B.
+6. **Template pack (`HermiteCut.drfx`).** *Built; Resolve test pending.*
+   - ✅ `tools/fusegen/packs/{common,effects,timefx,transitions,titles}.py` and
+     `build_pack.py`: **77 templates**: 36 effects, 5 time effects,
+     24 transitions and 12 titles. The full list is in
+     `build/HermiteCut-manifest.json`.
+   - ✅ Shared controls on every effect: *Apply at* (Post / Pre / Both /
+     Whole), *Frames*, *Curve* (Linear, Smooth, Ease Out, Ease In, Snap,
+     Overshoot), *Strength*, *Seed*. Hidden `Raw` / `Env` controls on the
+     `Controls` holder do the maths once. Transitions get *Direction*,
+     *Curve*, *Blur*, *Glow* and *Flash*. Titles get the groups Text, Colour,
+     Title Styling, Film Look and Animation, with Song / Artist / Directed By /
+     Credit fields on the six credit styles.
+   - ✅ **Slow Shutter:** 180 / 360 / 720 / 1440°, from 8 TimeStretcher taps
+     averaged with Merges.
+   - ✅ `check_pack.py` checks every file offline: syntax, known tools and
+     inputs, expressions (parsed and evaluated over every frame and every combo
+     value), Post / Pre / Both windows, transition end frames and title
+     visibility. `build_pack.py` will not build a pack that fails.
+   - ⏳ **On the owner's PC:** run `tools/dev/preflight.py`, then build,
+     install, restart Resolve and run `tools/dev/test_pack.py --make-clips`
+     (commands in section 5). It works in a scratch project, applies every
+     template, compares frames with `frametools.py` (inside the window
+     changes, outside is identical; a transition's first frame is A and its
+     last is B; titles are hidden at both ends), measures the Letterbox bars,
+     and saves **real thumbnails** to `build/thumbs/`. Rebuild to put them in
+     the pack. Copy the good ones to `tools/fusegen/thumbs/<Kind>/` and commit
+     them, since they are renders of our own templates.
+   - ⏳ Fix whatever `build/pack-test/report.md` flags, then tick the ROADMAP
+     row. Three things to watch, from the input-name check (see
+     RESOLVE_API_NOTES.md):
+     - RectangleMask height units, measured by the Letterbox test. Flip
+       `RECT_HEIGHT_IN_FRAME_HEIGHTS` if it reports a wrong size.
+     - The DirectionalBlur `Type` numbers.
+     - Which `type` name `AddTransition` wants for a Fusion transition. The
+       test tries four and records the one that works.
 7. **SFX library** (`tools/sfxgen/`). About 80 sounds made with
    numpy / scipy: whooshes, swishes, risers, downers, impacts, shutter clicks,
    camera, glitches, pops, UI clicks, film projector, tape stop. Use 48 kHz
@@ -315,10 +355,21 @@ items off in the ROADMAP status table.
   titles can't be longer than 150 frames.
 - User and third-party assets are **referenced, never bundled**.
 - Before v2 ships, the 1.0 plugin stays the supported way to use HermiteCut.
+- Templates are **generated, never hand-edited**: change the Python in
+  `tools/fusegen/packs/` and rebuild. Every template keeps the clip untouched
+  outside its window and measures time from `comp.RenderStart` /
+  `comp.RenderEnd`.
+- Template entry points are `PipeRouter`s. Time offsets use `TimeStretcher`
+  with a `SourceTime` expression, because TimeSpeed's Delay is meant to stay
+  constant. Brightness/Contrast always sets `Alpha = 0`, so it only touches
+  colour.
+- Previews on the website are animated illustrations, and the page says so.
+  Replace them with real renders once 2.0 ships.
 
 ## 11. Open questions for the owner
 
 - What does "shorter" mean: Shorts tools or keyboard shortcuts?
 - Mac: Apple Silicon, Intel or both?
 - Can the "EditKit Test" Resolve project and the scratch folders be deleted?
-- Should the website `/cut` page be updated to describe HermiteCut 1.0 now?
+- Pricing for 2.0: the site says 1.0 is free (MIT) and makes no promise about
+  2.0.

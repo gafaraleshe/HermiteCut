@@ -123,14 +123,52 @@ assert flash > before + 10, (flash, before)
 
 ## Template packs (v2)
 
+The pack is generated from Python in `tools/fusegen/packs/`. Never edit a
+`.setting` file by hand. More in [tools/fusegen/README.md](../tools/fusegen/README.md).
+
 ```bash
-python tools/fusegen/examples/dev_pack.py     # -> build/HermiteCut Dev.drfx
+python tools/fusegen/build_pack.py     # -> build/HermiteCut.drfx + build/HermiteCut-manifest.json
+python tools/fusegen/check_pack.py build/pack   # the offline checks on their own
 ```
 
-Copy the `.drfx` into the Fusion Templates folder (see
-[RESOLVE_API_NOTES.md](RESOLVE_API_NOTES.md#fusion-templates-setting--drfx)),
-restart Resolve and look for the **HermiteCut Dev** category in the Edit page's
-Effects library, under Effects, Titles and Transitions. More in [tools/fusegen/README.md](../tools/fusegen/README.md).
+`build_pack.py` runs the offline checks and refuses to build a pack that
+fails them. The checks cover syntax, known tools and inputs, expressions at
+every frame, Post / Pre / Both windows, transition end frames and title
+visibility.
+
+### Test the pack in Resolve
+
+On the machine with Resolve, with a scratch project open:
+
+```bash
+python tools/dev/preflight.py            # Python, ffmpeg, fuscript, External scripting = Local, project
+python tools/fusegen/build_pack.py
+python tools/fusegen/install_pack.py     # add --remove-dev to delete old dev packs
+```
+
+Restart Resolve, then:
+
+```bash
+python tools/dev/test_pack.py --make-clips
+```
+
+`test_pack.py` opens or creates the scratch project "HermiteCut Pack Test".
+It saves the project that was open first and never changes it. It then:
+
+- applies every effect to a trimmed clip and checks Post, Pre, Both and Whole
+  frame by frame against the clip without it;
+- puts every transition on a cut with handles and checks that the first frame
+  is clip A, the last is clip B and the middle changes;
+- inserts every title and checks that it is hidden at both ends and that its
+  text field edits the picture.
+
+It writes `build/pack-test/report.md`, plus the frames of any failed check,
+and a real 320×180 thumbnail per template in `build/thumbs/`. Run
+`build_pack.py` and `install_pack.py` again to put the thumbnails in the pack.
+Use `--only "Whip*"` or `--kind transitions` to re-test a few templates.
+
+The small dev pack is still there for quick experiments:
+`python tools/fusegen/examples/dev_pack.py` writes `build/HermiteCut Dev.drfx`.
 
 ## Releasing
 

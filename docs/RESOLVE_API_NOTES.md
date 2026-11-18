@@ -169,27 +169,47 @@ the node and look at the Inspector tooltips, or run `tool:GetInputList()`.
 |---|---|
 | Transform (`Transform`) | `Center`, `Pivot`, `Size`, `Aspect`, `Angle`, `FlipHoriz`, `FlipVert`, `Edges` (0 Canvas, 1 Wrap, 2 Duplicate, 3 Mirror), `MotionBlur`, `Quality`, `ShutterAngle` |
 | Merge (`Merge`) | `Background`, `Foreground`, `Center`, `Size`, `Angle`, `ApplyMode` (`"Normal"`, `"Screen"`, …), `Gain` (0 = additive), `BlendClone` |
-| Brightness/Contrast (`BrightnessContrast`) | `Gain`, `Lift`, `Gamma`, `Contrast`, `Brightness`, `Saturation` |
+| Brightness/Contrast (`BrightnessContrast`) | `Gain`, `Lift`, `Gamma`, `Contrast`, `Brightness`, `Saturation`, channel toggles `Red` `Green` `Blue` `Alpha`. The manual and saved files disagree on the Alpha default, so always set `Alpha` explicitly (the pack sets 0). |
 | Soft Glow (`SoftGlow`) | `Threshold`, `Gain`, `XGlowSize`, `RedScale` / `GreenScale` / `BlueScale` |
 | Directional Blur (`DirectionalBlur`) | `Type` (0 Linear, 1 Radial, 2 Centered, 3 Zoom), `Center`, `Length`, `Angle`, `Glow` |
 | Defocus (`Defocus`) | `Filter` (0 Gaussian, 1 Lens), `XDefocusSize`, `BloomLevel`, `BloomThreshold` |
 | Blur (`Blur`) | `Filter`, `XBlurSize`, `LockXY`, `BlendClone` |
 | Trails (`Trails`) | temporal feedback: `Restart`, `Preroll`, `RstPrerollOnRender`, `NumberOfPrerollFrames`, `GainRed/Green/Blue/Alpha`, `Rotate`, `XOffset` / `YOffset`, `XScale` / `YScale`, `XBlurSize`, `ApplyMode`, `MergeUnder`. Needs pre-roll to look right mid-shot. |
-| Time Speed (`TimeSpeed`) | `Speed` (−5…5, **can't be animated**), `Delay` (frames, −50…50), `InterpolateBetweenFrames` (0 Nearest, 1 Blend, 2 Flow), `SampleSpread` |
-| Time Stretcher (`TimeStretcher`) | `SourceTime` (animated spline: the source frame for each comp frame), `InterpolateBetweenFrames` |
+| Time Speed (`TimeSpeed`) | `Speed` (−5…5, **can't be animated**), `Delay` (frames, −50…50; meant to be constant, so don't drive it with `time`), `InterpolateBetweenFrames` (0 Nearest, 1 Blend, 2 Flow), `SampleSpread` |
+| Time Stretcher (`TimeStretcher`) | `SourceTime` (the source frame for each comp frame; an expression such as `time - 3` works and may change every frame), `InterpolateBetweenFrames` (as Time Speed). The pack uses this for every time offset. |
+| Pipe Router (`PipeRouter`) | `Input` only. A pure pass-through, used as each template's entry point so several tools can read the clip. |
+| Luma Keyer (`LumaKeyer`) | `Low`, `High` thresholds |
+| Rectangle / Ellipse mask (`RectangleMask`, `EllipseMask`) | `Center`, `Width`, `Height`, `SoftEdge`, `Invert`, `Angle`; `CornerRadius` on Rectangle only. Output is `Mask`. Ellipse sizes are in frame widths (a full 16:9 frame is 1 × 0.5625). Rectangle Height **appears** to be in frame heights; the Letterbox test confirms it (`RECT_HEIGHT_IN_FRAME_HEIGHTS` in `tools/fusegen/packs/common.py`). |
 | Film Grain (`FilmGrain`) | `Complexity`, `Monochrome`, `Seed`, `TimeLockSeed`, `MasterXSize`, `MasterStrength`, `MasterRoughness`, `LogProcessing` |
 | Fast Noise (`FastNoise`) | `Center`, `Detail`, `Contrast`, `Brightness`, `XScale` / `YScale`, `LockXY`, `Angle`, `Seethe`, `SeetheRate`, `Type`, `Color1*` / `Color2*`, `Gradient` |
-| Displace (`Displace`) | `Type` (0 Radial, 1 XY), `Center`, `Channel`, `XChannel` / `YChannel`, `RefractionStrength`, `XRefraction` / `YRefraction`, `LightPower`, `LightAngle`, `Spread` |
+| Displace (`Displace`) | `Input` = image, `Foreground` = displacement map. `Type` (0 Radial, 1 XY), `Center`, `Channel`, `XChannel` / `YChannel`, `RefractionStrength`, `XRefraction` / `YRefraction`, `LightPower`, `LightAngle`, `Spread` |
 | Channel Booleans (`ChannelBoolean`) | `Operation` (0 Copy, 1 Add, 2 Subtract, … 13 Difference), `ToRed` / `ToGreen` / `ToBlue` / `ToAlpha` (0 Red FG … 4 Do Nothing, 5 Red BG …) |
 | Dissolve (`Dissolve`) | `Operation` (`"DFTDissolve"`, `"DFTAddDissolve"`, `"DFTErode"`, `"DFTRandom"`, `"DFTRandomNoise"`, `"DFTAlphaMerge"`, `"DFTLumaRamp"` with `Map`, `"DFTWipe"`), `Mix`, `DFTWipe.WipeStyle`, `DFTWipe.Softness` |
 | Background (`Background`) | `Type` (`"Solid"`, gradients), `TopLeftRed/Green/Blue/Alpha`, gradient stops |
-| Text+ (`TextPlus`) | `StyledText`, `Font`, `Style`, `Size`, `Red1/Green1/Blue1`, `UseFrameFormatSettings`, `Width` / `Height` |
+| Text+ (`TextPlus`) | `StyledText`, `Font`, `Style`, `Size` (in frame widths), `Center`, `CharacterSpacing` (tracking, 1 = normal), `HorizontalLeftCenterRight` (−1 anchors the left edge at `Center`), `Red1/Green1/Blue1`, `UseFrameFormatSettings`, `Width` / `Height` |
+
+Where these came from: the first table rows were checked in Resolve 21.2 while
+building v1 and the dev pack. The rest were checked in November 2026 against
+the Fusion manual and real macros in the public WeSuckLess Reactor collection,
+but **not yet in Resolve**. Still unconfirmed:
+- the DirectionalBlur `Type` numbers (0 Linear, 1 Radial, 2 Centered, 3 Zoom,
+  from menu order);
+- RectangleMask height units.
+
+`tools/dev/test_pack.py` settles both.
+
+Merge `Gain` is the Alpha Gain: 0 gives an additive merge. ApplyMode names
+are FuIDs such as `"Screen"`, `"Lighten"` and `"Difference"`. In macros,
+three InstanceInputs that share a `ControlGroup` make one colour picker (or
+`Font` + `Style` make one font picker). A `LabelControl` user control with
+`LBLC_DropDownButton = true` and `LBLC_NumInputs = n` makes a collapsible
+group of the next *n* macro inputs. `IC_Visible = false` hides a control.
 
 ### Recipe ideas from testing
 
-- **Shutter angle / slow shutter:** use several `TimeSpeed` taps with
-  increasing `Delay` (Blend interpolation) and average them with Merges, each
-  at blend 1/k. 180° is half a frame of blur, 360° one frame, 720° two frames
+- **Shutter angle / slow shutter:** use several `TimeStretcher` taps with
+  `SourceTime = time - d` for increasing `d` (Blend interpolation) and average
+  them with Merges, each at blend 1/k. 180° is half a frame of blur, 360° one frame, 720° two frames
   and 1440° four frames.
 - **Start / end / both timing** for every effect: one *Apply at* multi-button
   (Post, Pre, Both, Whole clip) and a *Frames* slider. The amount comes from the
