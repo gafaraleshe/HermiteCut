@@ -236,10 +236,24 @@ original implementations, and never copy their files, names or presets:
 
 ## 9. v2 plan and next steps
 
-The complete feature spec is in [docs/ROADMAP.md](docs/ROADMAP.md). Work in
-this order, and tick items off in the ROADMAP status table:
+The complete feature spec is in [docs/ROADMAP.md](docs/ROADMAP.md). Steps are
+numbered to match the owner's task list. **Steps 1–5 are done**: the v1 plugin,
+the installer, the Resolve API checks, `tools/fusegen` with its dev pack, and
+this repository with its docs. **Continue from step 6**, in order, and tick
+items off in the ROADMAP status table.
 
-1. **Template pack (`HermiteCut.drfx`).**
+**Before step 6, on the owner's Windows PC:**
+
+1. DaVinci Resolve Studio is open with a scratch project. "EditKit Test" can be
+   reused.
+2. **Preferences → System → General → External scripting using** is set to
+   **Local**.
+3. The bridge works. Save `print(Resolve():GetVersionString())` as `check.lua`,
+   then run `"C:\Program Files\Blackmagic Design\DaVinci Resolve\fuscript.exe" -l lua check.lua`.
+   It should print a 21.x version.
+4. Python 3 is on PATH, for `tools/fusegen` and the frame checks.
+
+6. **Template pack (`HermiteCut.drfx`).**
    - Extend `tools/fusegen` with one pack script per family:
      `tools/fusegen/packs/{effects,timefx,transitions,titles}.py` and a
      `build_pack.py` that zips everything.
@@ -252,17 +266,18 @@ this order, and tick items off in the ROADMAP status table:
    - **Verify each template** on the test timeline with
      `tools/dev/frametools.py`. The frame must change inside the window and
      stay identical outside it, and transitions must blend A into B.
-2. **SFX library** (`tools/sfxgen/`). About 80 sounds made with
+7. **SFX library** (`tools/sfxgen/`). About 80 sounds made with
    numpy / scipy: whooshes, swishes, risers, downers, impacts, shutter clicks,
    camera, glitches, pops, UI clicks, film projector, tape stop. Use 48 kHz
    WAV, peak around −1 dBFS, with consistent names and category folders.
    Ship them as app resources. They may not be committed if they are large;
    generate them at build time.
-3. **Asset library.**
+
+   **Asset library** (also step 7):
    - Index user folders, including `.zip` contents, with no copying.
    - Types: LUTs (`.cube`), overlays (video and images), audio, `.drfx`, `.drt`.
    - Show previews, extract on demand to a cache, then insert or apply.
-4. **Standalone app (v2).** Electron, Windows + macOS.
+8. **Standalone app (v2).** Electron, Windows + macOS.
    - `bridge.lua`: a JSON-lines RPC over fuscript with a handle registry, plus
      JS `Proxy` objects so `lib/actions.js` runs unchanged.
    - Plugin mode keeps working.
@@ -279,13 +294,13 @@ this order, and tick items off in the ROADMAP status table:
      - **Shorts** (9:16 duplicate, scale to crop, Smart Reframe, safe zones),
      - **Setup** (installs templates, plugin, launcher and fonts; checks that
        External scripting is Local).
-5. **Packaging.**
+9. **Packaging.**
    - Windows: an installer `.exe` (the extended Go installer, or
      electron-builder NSIS) plus a `.zip`.
    - macOS: `.dmg` for arm64 and x64, ad-hoc signed unless the owner provides a
      Developer ID. Build on the Mac.
    - Publish on GitHub Releases.
-6. **End-to-end test** on Windows and Mac against Resolve 21.x. Then clean up
+10. **End-to-end test** on Windows and Mac against Resolve 21.x. Then clean up
    the leftovers listed in section 6, and update the website `/cut` page,
    README, CHANGELOG and this file.
 
