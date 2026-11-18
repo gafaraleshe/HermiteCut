@@ -1,0 +1,9 @@
+[package]
+name = "hc-paths"
+description = "Where DaVinci Resolve keeps templates, scripts, Workflow Integration plugins and fuscript, on Windows and macOS."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true

@@ -103,8 +103,12 @@ hosts/resolve/       the Resolve adapter: index.js (picks plugin or fuscript bri
                      (1.0 actions), studio.js (v2 actions), lua.js, bridge.lua + bridge-fuscript.js,
                      plugin/manifest.xml, launcher/HermiteCut.lua (Workspace > Scripts)
 app/                 Electron main + preload for both modes; package.json = electron-builder config
-installer/           Go installer for the panel-only zip
-.github/workflows/   release.yml: pack + Windows .exe + macOS .dmgs + panel zip, tags and publishes
+crates/              the Rust version (docs/RUST_PLAN.md): hc-paths, hc-installer (the panel-only
+                     installer, replaced Go), hc-core, hc-resolve, hc-node (napi-rs addon, typed in core/native)
+packaging/           files shipped next to the panel-only installer
+installer/vercel.json  only stops the Vercel "installer" project deploying (see Open questions)
+.github/workflows/   build.yml (every branch push: Windows .exe, Mac .dmgs, panel zip, pack as artifacts),
+                     release.yml (main: publishes v<version> once), rust.yml (Rust fmt, clippy, tests)
 scripts/             assemble.py (build/plugin, build/app, build/resources), build-windows.sh/.ps1, dev-install.bat
 tools/sfxgen/        sfxgen.py: the 81-sound library, made in code (build/sfx)
 tools/fusegen/       Python → Fusion .setting / .drfx generator (v2 templates)
@@ -124,8 +128,10 @@ for f in app/*.js hosts/resolve/*.js core/lib/*.js core/ui/js/*.js; do node --ch
 python scripts/assemble.py                # pack + checks + sounds + build/plugin, build/app, build/resources
 (cd build/app && npm install && npx electron-builder --win|--mac)   # what CI does
 python tools/dev/screenshot.py            # renders the UI with a mock bridge; must print "no console errors"
-scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows-panel.zip (needs Go)
-# releases: push tag v<ver> (or Actions > Release > Run workflow) -> builds everything and publishes
+scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows-panel.zip (Rust + MinGW; CI uses build-windows.ps1)
+cargo test --workspace                    # the Rust crates
+bun install && bun run native && bun run check && bun test   # Rust addon + TypeScript + Bun tests
+# releases: merge a new version to main -> release.yml builds everything and publishes v<ver>
 python tools/fusegen/examples/dev_pack.py # build/HermiteCut Dev.drfx
 python tools/fusegen/build_pack.py        # build/HermiteCut.drfx (+ offline checks, manifest)
 tools/dev/make_test_clips.sh              # build/testmedia/CLIP_A/B/C.mp4
@@ -365,8 +371,8 @@ the Resolve test (step 6 bullets below, then step 10), then publishing.
      - **Setup** (installs templates, plugin, launcher and fonts; checks that
        External scripting is Local).
 9. **Packaging.**
-   - Windows: an installer `.exe` (the extended Go installer, or
-     electron-builder NSIS) plus a `.zip`.
+   - Windows: electron-builder NSIS installer, plus the panel-only zip with
+     the Rust installer (`crates/hc-installer`).
    - macOS: `.dmg` for arm64 and x64, ad-hoc signed unless the owner provides a
      Developer ID. Build on the Mac.
    - Publish on GitHub Releases.
@@ -375,6 +381,15 @@ the Resolve test (step 6 bullets below, then step 10), then publishing.
    README, CHANGELOG and this file.
 
 ## 10. Decisions already made
+
+- **Stack: TypeScript + Electron + Rust, with Bun (2026-11-18).** The owner
+  chose this for the long term (Windows and macOS). Electron stays the shell,
+  which is also what Resolve loads the panel into. TypeScript replaces the
+  JavaScript. Rust is the engine, loaded into Electron as a napi-rs addon, plus
+  the standalone tools. Bun handles packages, scripts, bundling and TS tests
+  (Electron still runs Node). Plan and status: docs/RUST_PLAN.md. The Go
+  installer is replaced by `crates/hc-installer`. A short-lived Tauri shell was
+  dropped for this. Code before the move: branch `backup/v2-electron`.
 
 - Effects are **per-clip Fusion effects** (`AddEffect`), not adjustment clips,
   so they travel with the clip. Stacking means adding more effects.
@@ -417,7 +432,8 @@ the Resolve test (step 6 bullets below, then step 10), then publishing.
 - Code signing: Windows certificate and Apple Developer ID. Both are unsigned
   now; the Mac app is ad-hoc signed and opened with right-click → Open.
 - A Vercel project called "installer" is connected to this repo with root
-  `installer/`. It fails on every push (Go isn't a website). Disconnect it
-  unless it's meant for something.
+  `installer/`. It failed on every push (the folder held the Go installer,
+  not a website). `installer/vercel.json` now turns its Git deployments off.
+  Deleting the project in Vercel would let that folder go too.
 - opsgit feature flags were requested but need Cloudflare; parked while
   hosting stays on Vercel.

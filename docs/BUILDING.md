@@ -5,7 +5,8 @@
 | Task | Needs |
 |---|---|
 | Run the plugin | DaVinci Resolve **Studio** 19+ |
-| Build the Windows installer | [Go](https://go.dev/dl/) 1.22 or newer (cross-compiles from any OS); `zip` on Linux / macOS |
+| Build the panel-only installer | [Rust](https://rustup.rs) (stable). From Linux / macOS also the `x86_64-pc-windows-gnu` target, MinGW and `zip` |
+| The Rust crates and addon | Rust (stable) and [Bun](https://bun.sh) 1.4+; see [RUST_PLAN.md](RUST_PLAN.md) |
 | Screenshots of the panel | Python 3.10+, `pip install playwright` (and `playwright install chromium` if no Chrome is installed) |
 | Test clips | `ffmpeg` |
 | Template packs (v2) | Python 3.10+ |
@@ -26,21 +27,22 @@ Output in `dist/`:
 
 ```
 dist/HermiteCut/
-  Install HermiteCut.exe                    Go installer with the plugin embedded
+  Install HermiteCut.exe                    Rust installer (crates/hc-installer) with the panel embedded
   Install HermiteCut (no-exe version).bat
   Uninstall HermiteCut.bat
   README.txt  LICENSE.txt  THIRD_PARTY_NOTICES.txt
   plugin/com.hermitelabs.cut/               the plugin folder, for the .bat installer
-dist/HermiteCut-v<version>-windows.zip
+dist/HermiteCut-v<version>-windows-panel.zip
 ```
 
-The build copies `plugin/` into `installer/payload/`, which is git-ignored, and
-leaves out `devtools.flag` and any `WorkflowIntegration.node`. It then builds
-with `-trimpath -ldflags "-s -w"`, so no local paths end up in the binary.
+The installer embeds the assembled panel (`build/plugin/com.hermitelabs.cut`,
+from `scripts/assemble.py`) at compile time, leaving out `devtools.flag` and any
+`WorkflowIntegration.node`. Release builds are stripped and link the C runtime
+statically, so the `.exe` needs nothing else installed.
 
-The version comes from `plugin/package.json`. Keep `plugin/manifest.xml`, the
-about line in `plugin/index.html` and `installer/package/README.txt` in step
-with it.
+The version comes from `app/package.json`. Keep `hosts/resolve/plugin/manifest.xml`,
+the workspace version in `Cargo.toml` and `packaging/windows-panel/README.txt`
+in step with it.
 
 ## Develop against a live Resolve
 
@@ -84,8 +86,9 @@ its stack trace.
   `docs/images/{main,motion,audio,all}.png` and prints any console errors.
   Run it after every UI change, and treat new errors as failures.
 - **Syntax:** `for f in plugin/*.js plugin/lib/*.js plugin/js/*.js; do node --check "$f"; done`
-- **Installer:** `cd installer && gofmt -l . && go vet ./...` (run a build
-  first so that `payload/` exists).
+- **Rust:** `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`
+  and `cargo test --workspace`. The installer tests run with or
+  without an assembled panel.
 
 ## Test in Resolve (manual checklist)
 
@@ -172,19 +175,19 @@ The small dev pack is still there for quick experiments:
 
 ## Releasing
 
-1. Bump the version in `plugin/package.json`, `plugin/manifest.xml`, the about
-   line in `plugin/index.html` and `installer/package/README.txt`.
+1. Bump the version in `app/package.json`, `hosts/resolve/plugin/manifest.xml`,
+   `Cargo.toml` (workspace version) and `packaging/windows-panel/README.txt`.
 2. Add the release notes to `CHANGELOG.md`.
 3. Build the zip, then test the installer on a clean machine or VM, including
    an update over an older version.
-4. Publish it. On GitHub go to **Actions → Release → Run workflow**, or push a
-   tag `v<version>`. The workflow (`.github/workflows/release.yml`):
-   - checks the sources;
-   - builds `HermiteCut-v<version>-windows.zip`;
-   - creates the tag and the GitHub release, with notes taken from this
-     version's section of `CHANGELOG.md`.
+4. Merge to `main`. `.github/workflows/release.yml` sees a version with no
+   release yet, builds everything through `build.yml` (the Windows and Mac app
+   installers, the panel zip and the pack) and publishes `v<version>`, with
+   notes taken from this version's section of `CHANGELOG.md`.
 
-   Running it again for the same version replaces the zip.
+   **Actions → Release → Run workflow** (or pushing a tag `v<version>`)
+   rebuilds and replaces that version's files. Every push to another branch
+   runs `build.yml` and keeps the same files as run artifacts for 30 days.
 
 ## Code style
 
@@ -193,4 +196,4 @@ The small dev pack is still there for quick experiments:
 - Every action returns a small plain object, and the UI shows it as a toast.
   Errors are thrown as `Error` with a message the user can act on.
 - Write UI text in British English ("colour", "centre").
-- Format Go with `gofmt`.
+- Format Rust with `cargo fmt`; clippy runs with warnings as errors.

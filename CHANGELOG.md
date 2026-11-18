@@ -6,6 +6,12 @@ All notable changes to HermiteCut are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+- The start of HermiteCut's Rust engine (docs/RUST_PLAN.md): the asset
+  library, the catalogue, Resolve's folders and the Setup operations, tested
+  on Windows, macOS and Linux. The app moves to TypeScript + Electron + Rust,
+  with Bun for development.
+
 ## [2.0.0] - 2026-11-18
 
 HermiteCut is now its own app for **Windows and macOS** as well as the panel
@@ -17,10 +23,11 @@ library and an asset library.
   administrator rights needed. SmartScreen may warn because the installer is
   not code-signed yet: click **More info → Run anyway**.
 - **macOS:** `HermiteCut-Mac-arm64.dmg` (Apple Silicon) or
-  `HermiteCut-Mac-x64.dmg` (Intel). **First open on Mac: right-click
-  HermiteCut in Applications and choose Open**, then click Open again. The app
+  `HermiteCut-Mac-x64.dmg` (Intel). **First open on Mac:** the app
   is ad-hoc signed, not notarised, so a normal double-click is blocked the
-  first time.
+  first time. On macOS 15 or newer, try to open it once, then click **Open
+  Anyway** in System Settings → Privacy & Security. On macOS 14 or older,
+  right-click HermiteCut in Applications and choose Open.
 - `HermiteCut.drfx`: the template pack on its own. Double-click it with
   Resolve open, then restart Resolve.
 - `HermiteCut-v2.0.0-windows-panel.zip`: the Resolve panel on its own, as in
@@ -62,6 +69,8 @@ library and an asset library.
   Resolve Studio.
 
 ### Changed
+- The panel-only installer (`Install HermiteCut.exe`) is now written in Rust
+  instead of Go.
 - The code is now a shared core (`core/`) plus a Resolve adapter
   (`hosts/resolve/`), ready for other editors later.
 - Offline checks for every template (`check_pack.py`, `test_grid.py`) and an

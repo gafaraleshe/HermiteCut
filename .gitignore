@@ -27,3 +27,11 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# Rust
+/target/
+/crates/hc-app/gen/
+
+# Bun / TypeScript
+/node_modules/
+/core/native/*.node

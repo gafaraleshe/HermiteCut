@@ -1,0 +1,17 @@
+{
+  "name": "hermitecut-workspace",
+  "private": true,
+  "type": "module",
+  "description": "Development tooling for HermiteCut (TypeScript + Electron + Rust). Bun runs it; the app itself is app/package.json.",
+  "scripts": {
+    "native": "bun scripts/build-native.ts",
+    "native:release": "bun scripts/build-native.ts --release",
+    "check": "tsc --noEmit -p .",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.4",
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2"
+  }
+}

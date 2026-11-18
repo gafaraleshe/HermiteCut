@@ -1,0 +1,14 @@
+[package]
+name = "hc-core"
+description = "HermiteCut's host-independent logic: the template and sound catalogue, and the asset library."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+miniz_oxide.workspace = true

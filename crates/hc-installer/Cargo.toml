@@ -1,0 +1,17 @@
+[package]
+name = "hc-installer"
+description = "Installs the HermiteCut panel into DaVinci Resolve Studio (Windows and macOS)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+build = "build.rs"
+
+[[bin]]
+name = "hermitecut-installer"
+path = "src/main.rs"
+
+[dependencies]
+hc-paths.workspace = true

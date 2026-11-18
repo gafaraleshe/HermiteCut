@@ -12,7 +12,7 @@ A [Hermite Labs](https://cut.hermitelabs.com) product.
 <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest/download/HermiteCut-Mac-arm64.dmg"><img alt="Download for Mac" src="https://img.shields.io/badge/Download%20for%20Mac-f4f4f6?style=for-the-badge&logo=apple&logoColor=111111&labelColor=f4f4f6"></a>
 </p>
 
-<sub>Mac: Apple Silicon above, or <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest/download/HermiteCut-Mac-x64.dmg">Intel</a>. First open on Mac: right-click the app and choose <b>Open</b>. All files are on the <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest">latest release</a>.</sub>
+<sub>Mac: Apple Silicon above, or <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest/download/HermiteCut-Mac-x64.dmg">Intel</a>. First open on Mac: open it once, then <b>System Settings → Privacy &amp; Security → Open Anyway</b> (macOS 14 or older: right-click the app and choose <b>Open</b>). All files are on the <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest">latest release</a>.</sub>
 
 ![Version](https://img.shields.io/badge/version-2.0.0-b9acff)
 ![DaVinci Resolve Studio](https://img.shields.io/badge/DaVinci%20Resolve%20Studio-19%2B%20(tested%2021.2)-222)
@@ -116,7 +116,8 @@ plugin/            The Resolve Workflow Integration plugin (Electron)
   lib/lua.js       Lua run inside Fusion comps (keyframes, motion nodes)
   lib/motion.js    motion preset maths
   index.html, css/, js/, fonts/, img/   the panel UI
-installer/         Windows installer (Go, single .exe) and the files shipped next to it
+crates/            the Rust engine and tools: installer, core, Resolve folders and setup (docs/RUST_PLAN.md)
+packaging/         files shipped next to the panel-only installer
 scripts/           build scripts (Windows installer + zip) and a dev install script
 tools/fusegen/     Python generator for Fusion macros (.setting) and .drfx packs (v2 templates)
 tools/dev/         screenshots, test clips, frame checks and remote-debugging helpers
@@ -126,12 +127,12 @@ docs/              documentation and screenshots
 ## Building from source
 
 ```bash
-scripts/build-windows.sh                 # Linux / macOS, needs Go 1.22+
+scripts/build-windows.sh                 # Linux / macOS, needs Rust + MinGW
 # or on Windows:
 powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
 ```
 
-Both produce `dist/HermiteCut-v<version>-windows.zip`, which contains the
+Both produce `dist/HermiteCut-v<version>-windows-panel.zip`, which contains the
 installer `.exe`, the plugin folder, a no-exe `.bat` installer and an uninstaller.
 For a quick development install straight from `plugin/`, run
 `scripts\dev-install.bat` as administrator. See [docs/BUILDING.md](docs/BUILDING.md).

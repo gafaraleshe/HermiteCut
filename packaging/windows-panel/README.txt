@@ -1,8 +1,11 @@
-HERMITECUT 1.0.0
-================
+HERMITECUT 2.0 - RESOLVE PANEL
+==============================
 Motion, easing, alignment, beat markers, captions and one-click editing
 tools for DaVinci Resolve Studio, as a floating panel inside Resolve.
-By Hermite Labs - https://www.hermitelabs.com/cut
+This zip is the panel on its own. The full HermiteCut app (with the
+template pack, Grid Reveal and the sound library) is on the releases page:
+https://github.com/gafaraleshe/HermiteCut/releases/latest
+By Hermite Labs - https://cut.hermitelabs.com
 
 REQUIREMENTS
 - DaVinci Resolve STUDIO 19 or newer on Windows (tested on 21.2).

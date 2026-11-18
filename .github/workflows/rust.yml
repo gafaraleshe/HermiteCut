@@ -1,0 +1,85 @@
+# HermiteCut's Rust crates (crates/, docs/RUST_PLAN.md), on Windows, macOS and Linux:
+# test     cargo fmt, clippy and the Rust tests
+# native   the Node-API addon (crates/hc-node) built with Bun's scripts, the
+#          TypeScript check, and the Bun tests that load the real addon.
+#          Keeps the builds (Windows x64, Mac arm64 + x64, Linux x64) for 30 days.
+name: Rust
+
+on:
+  push:
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/**'
+      - 'hosts/resolve/bridge.lua'
+      - 'core/native/**'
+      - 'scripts/build-native.ts'
+      - 'package.json'
+      - 'bun.lock'
+      - 'tsconfig.json'
+      - '.github/workflows/rust.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Format
+        if: runner.os == 'Linux'
+        run: cargo fmt --all --check
+      - name: A zip from another tool, for the zip reader
+        shell: bash
+        run: |
+          python3 -c "import zipfile; z=zipfile.ZipFile('interop.zip','w'); z.writestr('Pack/Grade.cube','LUT_3D_SIZE 33\n'*400, compress_type=zipfile.ZIP_DEFLATED); z.writestr('Pack/Hit.wav', b'RIFF'+bytes(64)); z.close()" \
+            || python -c "import zipfile; z=zipfile.ZipFile('interop.zip','w'); z.writestr('Pack/Grade.cube','LUT_3D_SIZE 33\n'*400, compress_type=zipfile.ZIP_DEFLATED); z.writestr('Pack/Hit.wav', b'RIFF'+bytes(64)); z.close()"
+          echo "HC_TEST_ZIP=${{ github.workspace }}/interop.zip" >> "$GITHUB_ENV"
+      - name: Clippy
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --locked --workspace
+
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+            cross: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - run: bun install --frozen-lockfile
+      - name: TypeScript
+        run: bun run check
+      - name: Build the addon
+        run: bun run native:release
+      - name: Test the addon from TypeScript
+        run: bun test
+      - name: Build the Intel Mac addon
+        if: matrix.cross
+        run: |
+          rustup target add ${{ matrix.cross }}
+          bun scripts/build-native.ts --release --target ${{ matrix.cross }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hc-node-${{ runner.os }}
+          path: core/native/*.node
+          retention-days: 30
+          if-no-files-found: error

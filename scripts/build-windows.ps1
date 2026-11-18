@@ -1,8 +1,11 @@
-# Build the Windows installer and the release zip on Windows.
+# Build the panel-only Windows installer and its release zip, on Windows.
 #
 #   powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
+#   -> dist/HermiteCut-v<version>-windows-panel.zip
 #
-# Needs Go 1.22+ on PATH (https://go.dev/dl/).
+# Needs Rust (https://rustup.rs) and Python 3 (to assemble the panel if it
+# isn't already). The installer (crates/hc-installer) embeds the assembled
+# panel; Resolve's own WorkflowIntegration.node is never included.
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 
@@ -10,21 +13,20 @@ $version  = (Get-Content app/package.json -Raw | ConvertFrom-Json).version
 $name     = 'HermiteCut'
 $pluginId = 'com.hermitelabs.cut'
 $stage    = "dist/$name"
+$panel    = "build/plugin/$pluginId"
 
-Remove-Item -Recurse -Force installer/payload, dist -ErrorAction SilentlyContinue
-if (-not (Test-Path build/plugin/$pluginId/main.js)) { python scripts/assemble.py }
-Copy-Item build/plugin/$pluginId installer/payload -Recurse
-Remove-Item installer/payload/devtools.flag, installer/payload/WorkflowIntegration.node -ErrorAction SilentlyContinue
+if (-not (Test-Path "$panel/main.js")) { python scripts/assemble.py }
+Remove-Item -Recurse -Force $stage, "dist/$name-v$version-windows-panel.zip" -ErrorAction SilentlyContinue
+
+$env:HC_PAYLOAD_DIR = (Resolve-Path $panel).Path
+cargo build --release --locked -p hc-installer
+if ($LASTEXITCODE -ne 0) { throw 'cargo build failed' }
 
 New-Item -ItemType Directory -Force "$stage/plugin" | Out-Null
-Push-Location installer
-$env:GOOS = 'windows'; $env:GOARCH = 'amd64'; $env:CGO_ENABLED = '0'
-go build -trimpath -ldflags "-s -w" -o "../$stage/Install $name.exe" .
-if ($LASTEXITCODE -ne 0) { throw 'go build failed' }
-Pop-Location
-
-Copy-Item installer/payload "$stage/plugin/$pluginId" -Recurse
-Copy-Item installer/package/* $stage
+Copy-Item target/release/hermitecut-installer.exe "$stage/Install $name.exe"
+Copy-Item $panel "$stage/plugin/$pluginId" -Recurse
+Remove-Item "$stage/plugin/$pluginId/devtools.flag", "$stage/plugin/$pluginId/WorkflowIntegration.node" -ErrorAction SilentlyContinue
+Copy-Item packaging/windows-panel/* $stage
 Copy-Item LICENSE "$stage/LICENSE.txt"
 Copy-Item THIRD_PARTY_NOTICES.md "$stage/THIRD_PARTY_NOTICES.txt"
 
