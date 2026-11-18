@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+# Windows scripts and the README shipped next to the installer keep CRLF
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+installer/package/*.txt text eol=crlf
+
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.ico binary
+*.wav binary
+*.drfx binary
+*.exe binary

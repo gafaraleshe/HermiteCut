@@ -1,0 +1,29 @@
+# Build output
+/build/
+/dist/
+/installer/payload/
+*.exe
+*.zip
+*.drfx
+*.dmg
+
+# Resolve plugin binary - comes from the user's own Resolve install, never committed
+WorkflowIntegration.node
+devtools.flag
+
+# Generated test media
+*.mp4
+*.mov
+
+# Python / Node
+__pycache__/
+*.pyc
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
