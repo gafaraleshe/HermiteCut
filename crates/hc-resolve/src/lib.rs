@@ -7,5 +7,5 @@
 mod actions;
 pub mod bridge;
 
-pub use actions::Resolve;
+pub use actions::{Resolve, Setup};
 pub use bridge::{Bridge, Error};

@@ -18,8 +18,7 @@ const FONTS: [&str; 3] = ["archivo.woff2", "outfit.woff2", "montserrat.woff2"];
 /// Resolve restarts.
 pub struct Resolve {
     script: PathBuf,
-    resources: PathBuf,
-    paths: ResolvePaths,
+    setup: Setup,
     bridge: Mutex<Option<Arc<Bridge>>>,
 }
 
@@ -49,19 +48,17 @@ impl Resolve {
     pub fn with_paths(script: PathBuf, resources: PathBuf, paths: ResolvePaths) -> Resolve {
         Resolve {
             script,
-            resources,
-            paths,
+            setup: Setup::with_paths(paths, resources),
             bridge: Mutex::new(None),
         }
     }
 
     pub fn paths(&self) -> &ResolvePaths {
-        &self.paths
+        self.setup.paths()
     }
 
-    fn res(&self, rel: &str) -> PathBuf {
-        rel.split('/')
-            .fold(self.resources.clone(), |p, part| p.join(part))
+    pub fn setup(&self) -> &Setup {
+        &self.setup
     }
 
     /// The live connection, starting one if needed.
@@ -70,7 +67,7 @@ impl Resolve {
         if let Some(b) = slot.as_ref().filter(|b| b.is_alive()) {
             return Ok(b.clone());
         }
-        let fuscript = self.paths.find_fuscript().ok_or(Error::NotFound)?;
+        let fuscript = self.paths().find_fuscript().ok_or(Error::NotFound)?;
         let b = Arc::new(Bridge::start(&fuscript, &self.script)?);
         *slot = Some(b.clone());
         Ok(b)
@@ -128,15 +125,64 @@ impl Resolve {
 
     /// What Setup shows: the connection and what is installed.
     pub fn setup_status(&self, mode: &str) -> Value {
-        let d = &self.paths;
         let version = self
             .bridge()
             .ok()
             .and_then(|b| text(b.call(0, "GetVersionString", &[])));
+        let mut out = self.setup.installed();
+        out["mode"] = json!(mode);
+        out["resolve"] = json!(version.clone().unwrap_or_default());
+        out["scripting"] = json!(version.is_some());
+        out
+    }
+
+    pub fn install_templates(&self) -> Result<Value, String> {
+        self.setup.install_templates()
+    }
+
+    pub fn install_launcher(&self) -> Result<Value, String> {
+        self.setup.install_launcher()
+    }
+
+    pub fn install_fonts(&self) -> Result<Value, String> {
+        self.setup.install_fonts()
+    }
+
+    pub fn install_plugin(&self) -> Result<Value, String> {
+        self.setup.install_plugin()
+    }
+}
+
+/// Setup's file operations: what is installed, and installing it. Needs no
+/// connection to Resolve, so the app can run them on their own.
+pub struct Setup {
+    paths: ResolvePaths,
+    resources: PathBuf,
+}
+
+impl Setup {
+    /// `resources` holds the pack, launcher, fonts and panel the app ships.
+    pub fn new(resources: PathBuf) -> Setup {
+        Setup::with_paths(ResolvePaths::detect(), resources)
+    }
+
+    pub fn with_paths(paths: ResolvePaths, resources: PathBuf) -> Setup {
+        Setup { paths, resources }
+    }
+
+    pub fn paths(&self) -> &ResolvePaths {
+        &self.paths
+    }
+
+    fn res(&self, rel: &str) -> PathBuf {
+        rel.split('/')
+            .fold(self.resources.clone(), |p, part| p.join(part))
+    }
+
+    /// `{templates, launcher, plugin, fonts, paths}`: what is installed where.
+    pub fn installed(&self) -> Value {
+        let d = &self.paths;
         json!({
-            "mode": mode,
-            "resolve": version.clone().unwrap_or_default(),
-            "scripting": version.is_some(),
             "templates": d.templates.join("HermiteCut.drfx").is_file(),
             "launcher": d.scripts.join("HermiteCut.lua").is_file(),
             "plugin": d.plugin_dir().join("main.js").is_file(),

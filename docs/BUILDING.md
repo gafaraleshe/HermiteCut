@@ -6,7 +6,7 @@
 |---|---|
 | Run the plugin | DaVinci Resolve **Studio** 19+ |
 | Build the panel-only installer | [Rust](https://rustup.rs) (stable). From Linux / macOS also the `x86_64-pc-windows-gnu` target, MinGW and `zip` |
-| The Rust crates | Rust (stable); see [RUST_PLAN.md](RUST_PLAN.md) |
+| The Rust crates and addon | Rust (stable) and [Bun](https://bun.sh) 1.4+; see [RUST_PLAN.md](RUST_PLAN.md) |
 | Screenshots of the panel | Python 3.10+, `pip install playwright` (and `playwright install chromium` if no Chrome is installed) |
 | Test clips | `ffmpeg` |
 | Template packs (v2) | Python 3.10+ |

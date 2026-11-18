@@ -104,7 +104,7 @@ hosts/resolve/       the Resolve adapter: index.js (picks plugin or fuscript bri
                      plugin/manifest.xml, launcher/HermiteCut.lua (Workspace > Scripts)
 app/                 Electron main + preload for both modes; package.json = electron-builder config
 crates/              the Rust version (docs/RUST_PLAN.md): hc-paths, hc-installer (the panel-only
-                     installer, replaced Go), hc-core, hc-resolve; next: hc-node (the napi-rs addon for Electron)
+                     installer, replaced Go), hc-core, hc-resolve, hc-node (napi-rs addon, typed in core/native)
 packaging/           files shipped next to the panel-only installer
 installer/vercel.json  only stops the Vercel "installer" project deploying (see Open questions)
 .github/workflows/   build.yml (every branch push: Windows .exe, Mac .dmgs, panel zip, pack as artifacts),
@@ -130,6 +130,7 @@ python scripts/assemble.py                # pack + checks + sounds + build/plugi
 python tools/dev/screenshot.py            # renders the UI with a mock bridge; must print "no console errors"
 scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows-panel.zip (Rust + MinGW; CI uses build-windows.ps1)
 cargo test --workspace                    # the Rust crates
+bun install && bun run native && bun run check && bun test   # Rust addon + TypeScript + Bun tests
 # releases: merge a new version to main -> release.yml builds everything and publishes v<ver>
 python tools/fusegen/examples/dev_pack.py # build/HermiteCut Dev.drfx
 python tools/fusegen/build_pack.py        # build/HermiteCut.drfx (+ offline checks, manifest)

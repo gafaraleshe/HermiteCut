@@ -1,0 +1,27 @@
+[package]
+name = "hc-node"
+description = "HermiteCut's Rust engine as a Node-API addon, for the Electron app and the Resolve panel."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+# Node-API symbols only exist inside Node or Electron, so this crate is
+# tested from TypeScript (core/native/native.test.ts) instead of cargo test.
+test = false
+doctest = false
+
+[dependencies]
+hc-core.workspace = true
+hc-paths.workspace = true
+hc-resolve.workspace = true
+serde_json.workspace = true
+napi = { version = "3", default-features = false, features = ["napi6", "serde-json"] }
+napi-derive = "3"
+
+[build-dependencies]
+napi-build = "2"

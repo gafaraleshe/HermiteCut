@@ -1,5 +1,8 @@
-# HermiteCut's Rust crates (crates/, docs/RUST_PLAN.md): cargo fmt, clippy
-# and the tests on Windows, macOS and Linux.
+# HermiteCut's Rust crates (crates/, docs/RUST_PLAN.md), on Windows, macOS and Linux:
+# test     cargo fmt, clippy and the Rust tests
+# native   the Node-API addon (crates/hc-node) built with Bun's scripts, the
+#          TypeScript check, and the Bun tests that load the real addon.
+#          Keeps the builds (Windows x64, Mac arm64 + x64, Linux x64) for 30 days.
 name: Rust
 
 on:
@@ -10,6 +13,11 @@ on:
       - 'Cargo.lock'
       - '.cargo/**'
       - 'hosts/resolve/bridge.lua'
+      - 'core/native/**'
+      - 'scripts/build-native.ts'
+      - 'package.json'
+      - 'bun.lock'
+      - 'tsconfig.json'
       - '.github/workflows/rust.yml'
   workflow_dispatch:
 
@@ -41,3 +49,37 @@ jobs:
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
       - name: Test
         run: cargo test --locked --workspace
+
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+            cross: x86_64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - run: bun install --frozen-lockfile
+      - name: TypeScript
+        run: bun run check
+      - name: Build the addon
+        run: bun run native:release
+      - name: Test the addon from TypeScript
+        run: bun test
+      - name: Build the Intel Mac addon
+        if: matrix.cross
+        run: |
+          rustup target add ${{ matrix.cross }}
+          bun scripts/build-native.ts --release --target ${{ matrix.cross }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hc-node-${{ runner.os }}
+          path: core/native/*.node
+          retention-days: 30
+          if-no-files-found: error
