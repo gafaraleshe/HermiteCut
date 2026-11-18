@@ -1,0 +1,13 @@
+[package]
+name = "hc-resolve"
+description = "HermiteCut's DaVinci Resolve adapter: talks to Resolve through fuscript and bridge.lua."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+hc-paths.workspace = true
+serde_json.workspace = true

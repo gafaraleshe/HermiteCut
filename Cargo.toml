@@ -1,0 +1,25 @@
+# HermiteCut in Rust. See docs/RUST_PLAN.md for what is ported and what is next.
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "2.0.0"
+edition = "2021"
+rust-version = "1.80"
+license = "MIT"
+authors = ["Gafar (Hermite Labs)"]
+repository = "https://github.com/gafaraleshe/HermiteCut"
+
+[workspace.dependencies]
+hc-paths = { path = "crates/hc-paths" }
+hc-core = { path = "crates/hc-core" }
+hc-resolve = { path = "crates/hc-resolve" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+miniz_oxide = "0.8"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

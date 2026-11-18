@@ -116,7 +116,8 @@ plugin/            The Resolve Workflow Integration plugin (Electron)
   lib/lua.js       Lua run inside Fusion comps (keyframes, motion nodes)
   lib/motion.js    motion preset maths
   index.html, css/, js/, fonts/, img/   the panel UI
-installer/         Windows installer (Go, single .exe) and the files shipped next to it
+crates/            the Rust version: installer, core, Resolve adapter, desktop app (docs/RUST_PLAN.md)
+packaging/         files shipped next to the panel-only installer
 scripts/           build scripts (Windows installer + zip) and a dev install script
 tools/fusegen/     Python generator for Fusion macros (.setting) and .drfx packs (v2 templates)
 tools/dev/         screenshots, test clips, frame checks and remote-debugging helpers
@@ -126,12 +127,12 @@ docs/              documentation and screenshots
 ## Building from source
 
 ```bash
-scripts/build-windows.sh                 # Linux / macOS, needs Go 1.22+
+scripts/build-windows.sh                 # Linux / macOS, needs Rust + MinGW
 # or on Windows:
 powershell -ExecutionPolicy Bypass -File scripts\build-windows.ps1
 ```
 
-Both produce `dist/HermiteCut-v<version>-windows.zip`, which contains the
+Both produce `dist/HermiteCut-v<version>-windows-panel.zip`, which contains the
 installer `.exe`, the plugin folder, a no-exe `.bat` installer and an uninstaller.
 For a quick development install straight from `plugin/`, run
 `scripts\dev-install.bat` as administrator. See [docs/BUILDING.md](docs/BUILDING.md).

@@ -6,6 +6,10 @@ All notable changes to HermiteCut are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+- The start of HermiteCut in Rust (docs/RUST_PLAN.md): the core, the Resolve
+  connection and a preview of the desktop app, built for Windows and macOS.
+
 ## [2.0.0] - 2026-11-18
 
 HermiteCut is now its own app for **Windows and macOS** as well as the panel
@@ -63,6 +67,8 @@ library and an asset library.
   Resolve Studio.
 
 ### Changed
+- The panel-only installer (`Install HermiteCut.exe`) is now written in Rust
+  instead of Go.
 - The code is now a shared core (`core/`) plus a Resolve adapter
   (`hosts/resolve/`), ready for other editors later.
 - Offline checks for every template (`check_pack.py`, `test_grid.py`) and an

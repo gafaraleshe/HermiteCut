@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The main window. HermiteCut's own commands are allowed by default; no plugin commands are exposed to the page.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
