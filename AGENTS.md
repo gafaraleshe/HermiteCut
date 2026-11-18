@@ -17,11 +17,12 @@ linked docs. Keep it up to date when decisions change.
     with seven tools (Ease, Align, Actions, Motion, Bounce, Beats, Captions) and
     a Windows installer. It was built and tested on the owner's Windows PC with
     Resolve Studio 21.2.
-  - **v2.0** is in development. The foundations are verified. The template
-    pack (step 6) is **generated and passes the offline checks**, but it has
-    **not yet been run inside Resolve**: that needs the owner's PC (see step 6
-    below). SFX, the standalone app and packaging are still to do. Section 9
-    has the plan.
+  - **v2.0.0** is **built and offline-tested, not yet tested in Resolve and
+    not yet published**. Steps 6–9 are done in code: the template pack (91
+    templates, including Grid Reveal), the sound and asset libraries, the
+    standalone app with the core/adapter split, and the release workflow.
+    What's left (section 9): run it in Resolve on the owner's PC, fix what the
+    report flags, then publish by pushing tag `v2.0.0`.
 - **Docs:** [README](README.md) · [Install](docs/INSTALL.md) ·
   [User guide](docs/USER_GUIDE.md) · [Architecture](docs/ARCHITECTURE.md) ·
   [Building & testing](docs/BUILDING.md) ·
@@ -95,11 +96,17 @@ linked docs. Keep it up to date when decisions change.
 ## 4. Repository map
 
 ```
-plugin/              v1 Workflow Integration plugin (Electron, no build step)
-  main.js, preload.js, lib/{actions,lua,motion}.js, index.html, css/, js/, fonts/, img/
-installer/           Go Windows installer (main.go), files shipped beside it (package/)
-.github/workflows/   release.yml: builds and publishes the Windows release
-scripts/             build-windows.sh / .ps1, dev-install.bat
+core/                shared by every host (docs/MULTI_HOST_PLAN.md)
+  ui/                the panel/app UI: index.html, css/, js/ (studio.js = v2 modules), fonts/, img/
+  lib/               host-independent logic: motion.js, assets.js (asset library)
+hosts/resolve/       the Resolve adapter: index.js (picks plugin or fuscript bridge), adapter.js
+                     (1.0 actions), studio.js (v2 actions), lua.js, bridge.lua + bridge-fuscript.js,
+                     plugin/manifest.xml, launcher/HermiteCut.lua (Workspace > Scripts)
+app/                 Electron main + preload for both modes; package.json = electron-builder config
+installer/           Go installer for the panel-only zip
+.github/workflows/   release.yml: pack + Windows .exe + macOS .dmgs + panel zip, tags and publishes
+scripts/             assemble.py (build/plugin, build/app, build/resources), build-windows.sh/.ps1, dev-install.bat
+tools/sfxgen/        sfxgen.py: the 81-sound library, made in code (build/sfx)
 tools/fusegen/       Python → Fusion .setting / .drfx generator (v2 templates)
   packs/             common.py (timing, controls, helpers) + effects, timefx, transitions, titles
   build_pack.py      builds build/HermiteCut.drfx + manifest; check_pack.py offline checks
@@ -113,10 +120,12 @@ docs/                documentation and screenshots
 
 ```bash
 # checks that need no Resolve
-for f in plugin/*.js plugin/lib/*.js plugin/js/*.js; do node --check "$f"; done
+for f in app/*.js hosts/resolve/*.js core/lib/*.js core/ui/js/*.js; do node --check "$f"; done
+python scripts/assemble.py                # pack + checks + sounds + build/plugin, build/app, build/resources
+(cd build/app && npm install && npx electron-builder --win|--mac)   # what CI does
 python tools/dev/screenshot.py            # renders the UI with a mock bridge; must print "no console errors"
-scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows.zip (needs Go)
-# releases: GitHub Actions > Release > Run workflow (builds the zip, tags v<ver>, publishes the release)
+scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows-panel.zip (needs Go)
+# releases: push tag v<ver> (or Actions > Release > Run workflow) -> builds everything and publishes
 python tools/fusegen/examples/dev_pack.py # build/HermiteCut Dev.drfx
 python tools/fusegen/build_pack.py        # build/HermiteCut.drfx (+ offline checks, manifest)
 tools/dev/make_test_clips.sh              # build/testmedia/CLIP_A/B/C.mp4
@@ -128,7 +137,7 @@ python tools/dev/cdp.py status            # needs devtools.flag next to the inst
 # the template pack, on the PC with Resolve open (scratch project)
 python tools/dev/preflight.py             # the "Before step 6" checks
 python tools/fusegen/build_pack.py && python tools/fusegen/install_pack.py   # then restart Resolve
-python tools/dev/test_pack.py --make-clips   # tests all 77, writes build/pack-test/report.md + thumbnails
+python tools/dev/test_pack.py --make-clips   # tests all 91, writes build/pack-test/report.md + thumbnails
 python tools/fusegen/build_pack.py && python tools/fusegen/install_pack.py   # pack now has thumbnails
 ```
 
@@ -271,6 +280,27 @@ items off in the ROADMAP status table.
    It should print a 21.x version.
 4. Python 3 is on PATH, for `tools/fusegen` and the frame checks.
 
+**Status, 18 Nov 2026 (second pass):** steps 6–9 are built. Nothing has
+run in Resolve yet, because no session has had access to the owner's PC. Next:
+the Resolve test (step 6 bullets below, then step 10), then publishing.
+
+- **Grid Reveal** (`packs/gridreveal.py`, spec `docs/reference/grid-reveal.md`):
+  11 transition looks, Hand Track and Grid Lines. The cell and line maths runs
+  per pixel in Fusion `Custom` tools; `test_grid.py` runs the same expressions
+  offline at 1080p, UHD and 9:16. Not built yet: the Collage with a different
+  clip per cell, tracker or planar lock, perspective tilt, and beat sync from
+  markers (the Steps control quantises instead).
+- **Sound** (`tools/sfxgen`): 81 sounds. **Asset library**
+  (`core/lib/assets.js`): indexes folders and zips by reference; tested on
+  real zips.
+- **App** (`app/`, `hosts/resolve/`, `core/`): one `main.js` for both modes.
+  `bridge.lua` was tested in a Lua VM, and the Node bridge was tested end to
+  end through a stand-in fuscript. A missing Resolve method returns
+  `undefined`, so the adapter's `has()` checks keep working. The app was
+  launched in Electron and its UI rendered with no errors.
+- **Releases:** this session can push branches but not tags, and its GitHub
+  token can't start workflows, so the owner starts the first release.
+
 6. **Template pack (`HermiteCut.drfx`).** *Built; Resolve test pending.*
    - ✅ `tools/fusegen/packs/{common,effects,timefx,transitions,titles}.py` and
      `build_pack.py`: **77 templates**: 36 effects, 5 time effects,
@@ -364,12 +394,30 @@ items off in the ROADMAP status table.
   constant. Brightness/Contrast always sets `Alpha = 0`, so it only touches
   colour.
 - Previews on the website are animated illustrations, and the page says so.
-  Replace them with real renders once 2.0 ships.
+  Replace them with real renders once 2.0 ships. The Grid Reveal demo and
+  sound samples on the site are real (same maths, real files).
+- **Code layout:** shared `core/`, one adapter per host under `hosts/`. Resolve
+  is reached through `WorkflowIntegration.node` (panel) or fuscript +
+  `bridge.lua` (app). Premiere / Final Cut adapters come later, behind the
+  same `api` shape.
+- **Website:** hermitelabs.com is the hub and cut.hermitelabs.com is HermiteCut,
+  both from one Vercel project with host routing (HermiteLabs
+  `site/middleware.ts`). Hosting stays on Vercel for now.
 
 ## 11. Open questions for the owner
 
 - What does "shorter" mean: Shorts tools or keyboard shortcuts?
 - Mac: Apple Silicon, Intel or both?
 - Can the "EditKit Test" Resolve project and the scratch folders be deleted?
-- Pricing for 2.0: the site says 1.0 is free (MIT) and makes no promise about
-  2.0.
+- Price, Polar checkout link and the licence model (the repo is MIT and public;
+  see docs/website/REDESIGN_BRIEF.md §9). The site hides Buy until
+  `POLAR_CHECKOUT_URL` is set.
+- Company details for the legal pages (company number, registered address,
+  contact email): `site/lib/config.ts` in HermiteLabs.
+- Code signing: Windows certificate and Apple Developer ID. Both are unsigned
+  now; the Mac app is ad-hoc signed and opened with right-click → Open.
+- A Vercel project called "installer" is connected to this repo with root
+  `installer/`. It fails on every push (Go isn't a website). Disconnect it
+  unless it's meant for something.
+- opsgit feature flags were requested but need Cloudflare; parked while
+  hosting stays on Vercel.

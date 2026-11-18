@@ -4,8 +4,8 @@
 
 | Version | Status | Contents |
 |---|---|---|
-| **1.0** | ✅ Released (Windows) | Workflow Integration plugin: Ease, Align, Actions, Motion, Bounce, Beats, Captions. Go installer. |
-| **2.0** | 🛠 In development | Standalone app (Windows + macOS), template packs, SFX library, asset library, animated captions, Shorts tools |
+| **1.0** | ✅ Built and tested on Windows (no GitHub Release was ever published) | Workflow Integration plugin: Ease, Align, Actions, Motion, Bounce, Beats, Captions. Go installer. |
+| **2.0** | 🛠 Built, offline-tested; not yet tested in Resolve or published | Standalone app (Windows + macOS), template packs, SFX library, asset library, animated captions, Shorts tools |
 
 ### 2.0 progress
 
@@ -13,10 +13,10 @@
 |---|---|
 | Check the external bridge (fuscript), template install and loading, and placement APIs | ✅ Done (see [RESOLVE_API_NOTES.md](RESOLVE_API_NOTES.md)) |
 | `tools/fusegen`: macro writer plus a dev pack proven in Resolve (effect, transition, title) | ✅ Done |
-| Effect, transition and title packs (`HermiteCut.drfx`): 77 templates generated, passing offline checks | 🛠 Built; in-Resolve test and thumbnails pending |
-| SFX library (made in-house) and the asset library indexer | ⏳ |
-| Standalone app: bridge, new UI modules, setup screen | ⏳ |
-| Packaging: Windows `.exe`, macOS `.dmg` (arm64 + x64) | ⏳ |
+| Template pack (`HermiteCut.drfx`): 91 templates (37 effects incl. Slow Film Burn, 5 time FX, 24 transitions, 12 titles, 13 Grid Reveal), passing `check_pack.py` and `test_grid.py` | 🛠 Built; in-Resolve test (`tools/dev/test_pack.py`) and thumbnails pending |
+| SFX library (81 sounds, `tools/sfxgen`) and the asset library (`core/lib/assets.js`, zips by reference) | ✅ Built and tested offline |
+| Standalone app: `core/` + `hosts/resolve/` adapter, fuscript bridge (`bridge.lua`), Templates / Grid Reveal / Sound / Library / Captions+ / Shorts / Setup modules | ✅ Built; app launched in Electron and the bridge tested end to end against a stand-in Resolve. Not yet run against real Resolve |
+| Packaging: Windows `.exe`, macOS `.dmg` (arm64 + x64), release workflow | 🛠 Workflow ready; first run (tag `v2.0.0`) to be started by the owner |
 | End-to-end test in Resolve on Windows and Mac | ⏳ |
 
 ---
