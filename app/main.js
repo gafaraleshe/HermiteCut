@@ -54,6 +54,11 @@ function registerIpc() {
         .create({ appDir: __dirname, resourcesDir: resourcesDir(), log, app });
     host.api.hostInfo = async () => ({ host: host.id, hostName: host.name, mode: host.mode(),
         version: app.getVersion ? app.getVersion() : '', platform: process.platform });
+    if (host.api.engineInfo) {
+        host.api.engineInfo()
+            .then(i => log('Engine: ' + (i.engine === 'rust' ? 'Rust ' + i.version : 'JavaScript (' + i.reason + ')')))
+            .catch(() => 0);
+    }
 
     ipcMain.handle('hc:call', async (_ev, name, args) => {
         const fn = host.api[name];

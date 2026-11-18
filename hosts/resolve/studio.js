@@ -9,12 +9,25 @@ const path = require('path');
 const { execFile } = require('child_process');
 const ASSETS = require('../../core/lib/assets.js');
 
+// The Rust engine (crates/hc-node, loaded by core/lib/engine.ts) when this
+// build ships it; the JavaScript implementations otherwise. Both give the
+// same results (core/lib/engine.test.ts).
+let ENGINE = null;
+let engineInfo = () => ({ engine: 'js', version: null, reason: 'engine.js is not in this build' });
+try {
+    const E = require('../../core/lib/engine.js');
+    ENGINE = E.engine();
+    engineInfo = E.engineInfo;
+} catch (e) { /* an older or dev build without the compiled engine */ }
+
 function register(api, h) {
     const res = (...p) => path.join(h.H.resourcesDir || '', ...p);
     const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { return d; } };
 
     // ------------------------------------------------------------ catalogue
+    api.engineInfo = async () => engineInfo();
     api.catalogue = async () => {
+        if (ENGINE) return ENGINE.catalogue(res());
         const m = readJson(res('HermiteCut-manifest.json'), { templates: [] });
         const sfx = readJson(res('sfx', 'sfx.json'), { sounds: [] });
         return { templates: m.templates, version: m.version, sounds: sfx.sounds, sfxDir: res('sfx') };
@@ -143,10 +156,13 @@ function register(api, h) {
 
     // ------------------------------------------------------------ library
     const cacheDir = () => path.join(os.tmpdir(), 'hermitecut-asset-cache');
-    api.libraryIndex = async ({ folders }) => ASSETS.index(folders || []);
-    api.libraryClearCache = async () => { ASSETS.clearCache(cacheDir()); return { msg: 'Cache cleared' }; };
+    api.libraryIndex = async ({ folders }) => (ENGINE ? ENGINE.libraryIndex(folders || []) : ASSETS.index(folders || []));
+    api.libraryClearCache = async () => {
+        if (ENGINE) ENGINE.libraryClearCache(cacheDir()); else ASSETS.clearCache(cacheDir());
+        return { msg: 'Cache cleared' };
+    };
     api.libraryUse = async ({ item, action }) => {
-        const file = ASSETS.materialise(item, cacheDir());
+        const file = ENGINE ? ENGINE.libraryMaterialise(item, cacheDir()) : ASSETS.materialise(item, cacheDir());
         const p = await h.project();
         if (item.type === 'audio') return api.placeAudio({ file, where: action || 'playhead' });
         if (item.type === 'lut') {

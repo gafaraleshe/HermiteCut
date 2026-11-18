@@ -55,27 +55,31 @@ package.json          Bun: scripts, TypeScript (tsconfig.json), tests; bun.lock
   - `bun run check` type-checks (strict);
   - `bun test` runs the tests.
 
+- **The engine ships and runs (2.0.1).**
+  - **Loader:** `core/lib/engine.ts` loads the addon. If it's missing or the
+    OS refuses it, `engine()` returns null and the callers use the JavaScript
+    code instead.
+  - **Swapped to Rust:** the catalogue and the asset library (`catalogue`,
+    `libraryIndex`, `libraryClearCache`, and extraction for `libraryUse`).
+    A Bun test checks that Rust and JavaScript give the same items.
+  - **Build:** `scripts/assemble.py` compiles the loader with `bun build`.
+    CI builds the addon on each platform, and `scripts/place-native.ts`
+    puts it in the app and the panel.
+  - **Log:** the log says which engine is running.
+
 ## Next, in order
 
-1. **Ship the addon.**
-   - `scripts/assemble.py` (later a Bun script) puts each platform's
-     `.node` in the app and the panel.
-   - `bun build` compiles the TypeScript for Electron's main process (Node)
-     and the renderer. The Resolve panel gets the compiled JavaScript, as
-     Resolve requires.
-2. **First swap.**
-   - `core/lib/assets.js` → TypeScript over the Rust asset library.
-   - The `catalogue` and Setup actions → Rust.
-   - Same JSON, so `core/ui` doesn't change.
-3. **TypeScript, file by file.** `app/main`, `app/preload` and
+1. **Setup in Rust.** The four Setup actions call `hc-node` once they've been
+   run on a real PC (they ask for admin rights, so test them by hand first).
+2. **TypeScript, file by file.** `app/main`, `app/preload` and
    `hosts/resolve/*`, then `core/ui/js/*`, with types for the Resolve API as it
    is used.
-4. **More engine in Rust.** Beat analysis (`core/ui/js/beats.js`) and motion
+3. **More engine in Rust.** Beat analysis (`core/ui/js/beats.js`) and motion
    curves (`core/lib/motion.js`), with tests against the current output.
-5. **Tools in Rust.** The template pack generator and checker
+4. **Tools in Rust.** The template pack generator and checker
    (`tools/fusegen`) and the sound generator (`tools/sfxgen`). `tools/dev`
    stays Python, because it runs inside Resolve's own Python.
-6. **Signing and updates.** Windows code signing, Apple notarisation and
+5. **Signing and updates.** Windows code signing, Apple notarisation and
    electron-updater, once the certificates exist.
 
 ## Working on it
@@ -83,6 +87,7 @@ package.json          Bun: scripts, TypeScript (tsconfig.json), tests; bun.lock
 ```bash
 bun install                     # TypeScript and types (Bun 1.4+)
 bun run native                  # build the Rust addon for this machine -> core/native/
+bun scripts/place-native.ts     # after assemble.py: put it in build/app and the panel
 bun run check                   # TypeScript, strict
 bun test                        # TS tests (they load the real addon)
 cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings

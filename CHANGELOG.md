@@ -6,11 +6,21 @@ All notable changes to HermiteCut are listed here. The format follows
 
 ## [Unreleased]
 
-### Added
-- The start of HermiteCut's Rust engine (docs/RUST_PLAN.md): the asset
-  library, the catalogue, Resolve's folders and the Setup operations, tested
-  on Windows, macOS and Linux. The app moves to TypeScript + Electron + Rust,
-  with Bun for development.
+## [2.0.1] - 2026-11-18
+
+### Fixed
+- **Setup → Resolve panel** in the app said the panel was missing from the
+  install. The app now ships the panel with the rest of its resources.
+
+### Changed
+- HermiteCut now runs on a Rust engine where it can. The template and sound
+  catalogue and the asset library (indexing folders and zips, extracting on
+  use) run in Rust, in the app and in the Resolve panel, on Windows and macOS.
+  If the engine can't load, for example where Resolve refuses an unsigned
+  module, HermiteCut quietly uses its JavaScript code instead, with the same
+  results. **Settings → Open log file** shows which one is running.
+- The app moves to TypeScript + Electron + Rust, with Bun for development
+  (docs/RUST_PLAN.md).
 
 ## [2.0.0] - 2026-11-18
 
