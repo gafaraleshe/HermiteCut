@@ -1,0 +1,55 @@
+# Builds the Windows installer zip and publishes it as a GitHub release.
+#
+# Run it from the Actions tab (Release > Run workflow), or push a tag such as v1.0.0.
+# The version comes from plugin/package.json. The release notes come from that
+# version's section in CHANGELOG.md.
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Check sources
+        run: |
+          for f in plugin/*.js plugin/lib/*.js plugin/js/*.js; do node --check "$f"; done
+          test -z "$(gofmt -l installer)"
+
+      - name: Build Windows zip
+        run: scripts/build-windows.sh
+
+      - name: Release notes
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('plugin/package.json'))['version'])")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          python3 - "$VERSION" > notes.md <<'PY'
+          import re, sys
+          v = sys.argv[1]
+          text = open('CHANGELOG.md', encoding='utf-8').read()
+          m = re.search(r'^## \[' + re.escape(v) + r'\][^\n]*\n(.*?)(?=^## \[|^\[)', text, re.S | re.M)
+          print(m.group(1).strip() if m else f'HermiteCut {v}')
+          PY
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$VERSION"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zip --clobber
+          else
+            gh release create "$TAG" dist/*.zip --title "HermiteCut $VERSION" --notes-file notes.md --target "$GITHUB_SHA"
+          fi

@@ -139,8 +139,14 @@ Effects library, under Effects, Titles and Transitions. More in [tools/fusegen/R
 2. Add the release notes to `CHANGELOG.md`.
 3. Build the zip, then test the installer on a clean machine or VM, including
    an update over an older version.
-4. Tag it (`git tag v1.0.0 && git push --tags`) and attach
-   `dist/HermiteCut-v<version>-windows.zip` to a GitHub release.
+4. Publish it. On GitHub go to **Actions → Release → Run workflow**, or push a
+   tag `v<version>`. The workflow (`.github/workflows/release.yml`):
+   - checks the sources;
+   - builds `HermiteCut-v<version>-windows.zip`;
+   - creates the tag and the GitHub release, with notes taken from this
+     version's section of `CHANGELOG.md`.
+
+   Running it again for the same version replaces the zip.
 
 ## Code style
 

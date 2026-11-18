@@ -91,6 +91,7 @@ linked docs. Keep it up to date when decisions change.
 plugin/              v1 Workflow Integration plugin (Electron, no build step)
   main.js, preload.js, lib/{actions,lua,motion}.js, index.html, css/, js/, fonts/, img/
 installer/           Go Windows installer (main.go), files shipped beside it (package/)
+.github/workflows/   release.yml: builds and publishes the Windows release
 scripts/             build-windows.sh / .ps1, dev-install.bat
 tools/fusegen/       Python → Fusion .setting / .drfx generator (v2 templates)
 tools/dev/           screenshot.py + mock.js, make_test_clips.sh, frametools.py, cdp.py
@@ -104,6 +105,7 @@ docs/                documentation and screenshots
 for f in plugin/*.js plugin/lib/*.js plugin/js/*.js; do node --check "$f"; done
 python tools/dev/screenshot.py            # renders the UI with a mock bridge; must print "no console errors"
 scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows.zip (needs Go)
+# releases: GitHub Actions > Release > Run workflow (builds the zip, tags v<ver>, publishes the release)
 python tools/fusegen/examples/dev_pack.py # build/HermiteCut Dev.drfx
 tools/dev/make_test_clips.sh              # build/testmedia/CLIP_A/B/C.mp4
 
