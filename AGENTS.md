@@ -104,7 +104,8 @@ hosts/resolve/       the Resolve adapter: index.js (picks plugin or fuscript bri
                      plugin/manifest.xml, launcher/HermiteCut.lua (Workspace > Scripts)
 app/                 Electron main + preload for both modes; package.json = electron-builder config
 crates/              the Rust version (docs/RUST_PLAN.md): hc-paths, hc-installer (the panel-only
-                     installer, replaced Go), hc-core, hc-resolve, hc-node (napi-rs addon, typed in core/native)
+                     installer, replaced Go), hc-core, hc-resolve, hc-node (napi-rs addon, typed in core/native),
+                     hc-mcp (hermitecut-mcp, Claude Desktop's stdio bridge to core/mcp/server.ts)
 packaging/           files shipped next to the panel-only installer
 installer/vercel.json  only stops the Vercel "installer" project deploying (see Open questions)
 .github/workflows/   build.yml (every branch push: Windows .exe, Mac .dmgs, panel zip, pack as artifacts),

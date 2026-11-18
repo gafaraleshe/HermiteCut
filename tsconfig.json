@@ -15,5 +15,5 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["core/native/**/*.ts", "core/lib/**/*.ts", "scripts/**/*.ts"]
+  "include": ["core/native/**/*.ts", "core/lib/**/*.ts", "core/mcp/**/*.ts", "scripts/**/*.ts"]
 }

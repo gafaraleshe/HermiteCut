@@ -10,7 +10,7 @@
 // hosts can be added later (docs/MULTI_HOST_PLAN.md).
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -36,6 +36,7 @@ try {
     }
 } catch (e) { /* ignore */ }
 
+const MAC = process.platform === 'darwin';
 let pinned = true;
 let mainWindow = null;
 let host = null;
@@ -115,11 +116,15 @@ function registerIpc() {
         switch (cmd) {
             case 'close': mainWindow.close(); return true;
             case 'minimize': mainWindow.minimize(); return true;
+            case 'zoom':
+                if (mainWindow.isMaximized()) mainWindow.unmaximize(); else mainWindow.maximize();
+                return mainWindow.isMaximized();
             case 'pin': pinned = !!val; applyPin(); return pinned;
             case 'isPinned': return mainWindow.isAlwaysOnTop();
             case 'openLog': shell.openPath(logFile()); return true;
             case 'openExternal': if (/^https?:\/\//.test(val)) shell.openExternal(val); return true;
             case 'reveal': if (val) shell.showItemInFolder(val); return true;
+            case 'copy': clipboard.writeText(String(val || '')); return true;
         }
         return false;
     });
@@ -141,7 +146,9 @@ function createWindow() {
         height: 720,
         minWidth: 380,
         minHeight: 420,
-        frame: false,
+        // macOS: the system's traffic lights over a hidden title bar. Elsewhere
+        // the page draws matching ones (core/ui .lights).
+        ...(MAC ? { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 14, y: 16 } } : { frame: false }),
         backgroundColor: '#050505',
         title: 'HermiteCut',
         alwaysOnTop: true,
@@ -160,17 +167,48 @@ function createWindow() {
     ['show', 'restore', 'blur'].forEach(ev => mainWindow.on(ev, () => setTimeout(applyPin, ev === 'blur' ? 30 : 0)));
     mainWindow.on('close', () => {
         try { if (host) host.cleanup(); } catch (e) { /* ignore */ }
+        try { if (mcp) mcp.close(); } catch (e) { /* ignore */ }
         app.quit();
     });
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         if (/^https?:\/\//.test(url)) shell.openExternal(url);
         return { action: 'deny' };
     });
-    mainWindow.loadFile(path.join(ROOT, 'core', 'ui', 'index.html'));
+    mainWindow.loadFile(path.join(ROOT, 'core', 'ui', 'index.html'), MAC ? { query: { lights: 'native' } } : {});
+}
+
+// The local MCP server, so Claude can use HermiteCut (core/mcp/server.ts).
+let mcp = null;
+function bridgePath() {
+    const exe = 'hermitecut-mcp-' + process.platform + '-' + process.arch + (process.platform === 'win32' ? '.exe' : '');
+    return path.join(ROOT, 'core', 'native', exe);
+}
+async function startMcp() {
+    let mcpError = '';
+    host.api.mcpInfo = async () => {
+        if (!mcp) return { running: false, reason: mcpError || 'Not started' };
+        const bridge = bridgePath();
+        return {
+            running: true, url: mcp.url, port: mcp.port, tools: mcp.tools.length, bridge: fs.existsSync(bridge) ? bridge : null,
+            claudeCode: 'claude mcp add --transport http hermitecut ' + mcp.url + ' --header "Authorization: Bearer ' + mcp.token + '"',
+            claudeDesktop: JSON.stringify({ mcpServers: { hermitecut: { command: bridge } } }, null, 2)
+        };
+    };
+    try {
+        const { startMcp: start } = require(path.join(ROOT, 'core', 'mcp', 'server.js'));
+        mcp = await start({
+            api: host.api, version: app.getVersion ? app.getVersion() : '', dataDir: app.getPath('userData'),
+            quickJsPath: path.join(ROOT, 'core', 'ui', 'js', 'quick.js'), log
+        });
+    } catch (e) {
+        mcpError = e && e.message ? e.message : String(e);
+        log('MCP server not started: ' + mcpError);
+    }
 }
 
 app.whenReady().then(() => {
     registerIpc();
+    startMcp();
     createWindow();
 });
 

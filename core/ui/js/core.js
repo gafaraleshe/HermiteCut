@@ -199,8 +199,12 @@
         tips();
 
         // window buttons
+        if (new URLSearchParams(location.search).get('lights') === 'native') document.documentElement.classList.add('native-lights');
         $('#btnClose').onclick = () => window.hermite.win('close');
         $('#btnMin').onclick = () => window.hermite.win('minimize');
+        $('#btnZoom').onclick = () => window.hermite.win('zoom');
+        // double-clicking the title bar zooms, as on macOS
+        $('.titlebar').addEventListener('dblclick', (e) => { if (!e.target.closest('button, .sets')) window.hermite.win('zoom'); });
         const pinBtn = $('#btnPin');
         const pinned = store.get('pin', true);
         window.hermite.win('pin', pinned).then(v => pinBtn.classList.toggle('on', !!v));

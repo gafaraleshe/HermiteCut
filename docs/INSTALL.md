@@ -30,6 +30,25 @@ Download from the [latest release](https://github.com/gafaraleshe/HermiteCut/rel
      `xattr -cr /Applications/HermiteCut.app`
 3. In HermiteCut, go to **Setup → Install everything**, then restart Resolve.
 
+### Use HermiteCut with Claude
+
+HermiteCut runs a small MCP server while it's open (the app or its panel in
+Resolve), so Claude can use it: apply templates and transitions, insert
+titles, place sounds and run actions on the clips you've selected. It only
+listens on your own computer (127.0.0.1) and needs a private key.
+
+1. In HermiteCut, open **Setup**. The **Claude** card says *Ready for Claude*.
+2. **Claude Code:** click **Copy command** and paste it into a terminal.
+   **Claude Desktop:** click **Copy config**, then in Claude Desktop go to
+   **Settings → Developer → Edit Config**, paste it into
+   `claude_desktop_config.json` (merge it with any servers already there) and
+   restart Claude.
+3. Keep HermiteCut open while you work. Ask Claude, for example, "add a Whip
+   transition at every cut of the selected clips and a whoosh on each cut".
+
+On a Mac, if Claude Desktop can't start the bridge, run
+`xattr -dr com.apple.quarantine /Applications/HermiteCut.app` once.
+
 ### The connection to Resolve
 
 The app talks to Resolve through its scripting interface. In Resolve, set

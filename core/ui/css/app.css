@@ -55,6 +55,25 @@ body.no-glow .backdrop { display: none; }
 .titlebar .left, .titlebar .right { display: flex; align-items: center; gap: 4px; }
 .titlebar .right { justify-content: flex-end; }
 .titlebar button, .titlebar .sets { -webkit-app-region: no-drag; }
+/* Mac-style window buttons. On macOS the app shows the system's own (main.js
+   sets titleBarStyle and loads the page with ?lights=native), so these hide
+   and the title bar leaves room for them. */
+.mcp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.mcp-row .hint { margin: 2px 0 0; }
+.lights { display: flex; align-items: center; gap: 8px; margin-right: 10px; padding-left: 2px; }
+.light { width: 12px; height: 12px; padding: 0; border-radius: 50%; border: 0; cursor: default; position: relative; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.25); }
+.light.close { background: #ff5f57; }
+.light.min { background: #febc2e; }
+.light.zoom { background: #28c840; }
+.light::before { position: absolute; inset: 0; display: grid; place-items: center; font: 700 10px/1 -apple-system, "Segoe UI", sans-serif; color: rgba(0,0,0,.6); opacity: 0; transition: opacity .1s; }
+.light.close::before { content: "×"; font-size: 11px; }
+.light.min::before { content: "−"; }
+.light.zoom::before { content: "+"; }
+.lights:hover .light::before, .light:focus-visible::before { opacity: 1; }
+.light:active { filter: brightness(.85); }
+.light:focus-visible { outline: 2px solid var(--accent, #b9acff); outline-offset: 2px; }
+html.native-lights .lights { display: none; }
+html.native-lights .titlebar { padding-left: 80px; }
 .wordmark { font-family: var(--font-display); font-weight: 800; font-stretch: 125%; letter-spacing: .06em; font-size: 15px; display: flex; align-items: center; gap: 8px; }
 .wordmark .sub { font-family: var(--font); font-stretch: 100%; font-weight: 500; font-size: 10px; letter-spacing: .14em; color: var(--accent); border: 1px solid rgba(var(--accent-rgb), .35); border-radius: 30px; padding: 2px 7px; }
 .ibtn { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 8px; border: 0; background: transparent; color: var(--muted); cursor: pointer; transition: background .15s, color .15s; }
