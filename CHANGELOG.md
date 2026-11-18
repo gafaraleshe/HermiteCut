@@ -17,10 +17,11 @@ library and an asset library.
   administrator rights needed. SmartScreen may warn because the installer is
   not code-signed yet: click **More info → Run anyway**.
 - **macOS:** `HermiteCut-Mac-arm64.dmg` (Apple Silicon) or
-  `HermiteCut-Mac-x64.dmg` (Intel). **First open on Mac: right-click
-  HermiteCut in Applications and choose Open**, then click Open again. The app
+  `HermiteCut-Mac-x64.dmg` (Intel). **First open on Mac:** the app
   is ad-hoc signed, not notarised, so a normal double-click is blocked the
-  first time.
+  first time. On macOS 15 or newer, try to open it once, then click **Open
+  Anyway** in System Settings → Privacy & Security. On macOS 14 or older,
+  right-click HermiteCut in Applications and choose Open.
 - `HermiteCut.drfx`: the template pack on its own. Double-click it with
   Resolve open, then restart Resolve.
 - `HermiteCut-v2.0.0-windows-panel.zip`: the Resolve panel on its own, as in

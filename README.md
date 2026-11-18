@@ -12,7 +12,7 @@ A [Hermite Labs](https://cut.hermitelabs.com) product.
 <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest/download/HermiteCut-Mac-arm64.dmg"><img alt="Download for Mac" src="https://img.shields.io/badge/Download%20for%20Mac-f4f4f6?style=for-the-badge&logo=apple&logoColor=111111&labelColor=f4f4f6"></a>
 </p>
 
-<sub>Mac: Apple Silicon above, or <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest/download/HermiteCut-Mac-x64.dmg">Intel</a>. First open on Mac: right-click the app and choose <b>Open</b>. All files are on the <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest">latest release</a>.</sub>
+<sub>Mac: Apple Silicon above, or <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest/download/HermiteCut-Mac-x64.dmg">Intel</a>. First open on Mac: open it once, then <b>System Settings → Privacy &amp; Security → Open Anyway</b> (macOS 14 or older: right-click the app and choose <b>Open</b>). All files are on the <a href="https://github.com/gafaraleshe/HermiteCut/releases/latest">latest release</a>.</sub>
 
 ![Version](https://img.shields.io/badge/version-2.0.0-b9acff)
 ![DaVinci Resolve Studio](https://img.shields.io/badge/DaVinci%20Resolve%20Studio-19%2B%20(tested%2021.2)-222)

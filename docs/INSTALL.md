@@ -18,10 +18,16 @@ Download from the [latest release](https://github.com/gafaraleshe/HermiteCut/rel
 
 1. Open **HermiteCut-Mac-arm64.dmg** (Apple Silicon) or
    **HermiteCut-Mac-x64.dmg** (Intel) and drag HermiteCut to Applications.
-2. **First open on Mac: right-click HermiteCut in Applications and choose
-   Open, then click Open again.** The app is ad-hoc signed and not notarised,
-   so macOS blocks a normal double-click the first time. After that it opens
-   normally. (Or: System Settings → Privacy & Security → Open Anyway.)
+2. **First open on Mac.** The app is ad-hoc signed and not notarised, so
+   macOS blocks a normal double-click the first time. After that it opens
+   normally.
+   - macOS 15 (Sequoia) or newer: double-click HermiteCut once and close the
+     warning, then go to **System Settings → Privacy & Security** and click
+     **Open Anyway**.
+   - macOS 14 or older: **right-click HermiteCut in Applications and choose
+     Open**, then click Open again.
+   - If macOS says the app "is damaged", run this once in Terminal:
+     `xattr -cr /Applications/HermiteCut.app`
 3. In HermiteCut, go to **Setup → Install everything**, then restart Resolve.
 
 ### The connection to Resolve
