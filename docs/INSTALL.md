@@ -1,6 +1,39 @@
 # Installing HermiteCut
 
-HermiteCut 1.0 is a **Workflow Integration plugin** for **DaVinci Resolve
+## HermiteCut 2.0 (app + panel)
+
+Download from the [latest release](https://github.com/gafaraleshe/HermiteCut/releases/latest).
+
+### Windows
+
+1. Run **HermiteCut-Windows-Setup.exe**. It installs for your user only and
+   needs no administrator rights. SmartScreen may warn because the installer
+   isn't code-signed yet: click **More info → Run anyway**.
+2. Open HermiteCut and go to **Setup**. Click **Install everything**: the
+   template pack, the Resolve panel (this one asks for administrator rights),
+   the Workspace → Scripts launcher and the title fonts.
+3. Restart DaVinci Resolve.
+
+### macOS (Apple Silicon or Intel)
+
+1. Open **HermiteCut-Mac-arm64.dmg** (Apple Silicon) or
+   **HermiteCut-Mac-x64.dmg** (Intel) and drag HermiteCut to Applications.
+2. **First open on Mac: right-click HermiteCut in Applications and choose
+   Open, then click Open again.** The app is ad-hoc signed and not notarised,
+   so macOS blocks a normal double-click the first time. After that it opens
+   normally. (Or: System Settings → Privacy & Security → Open Anyway.)
+3. In HermiteCut, go to **Setup → Install everything**, then restart Resolve.
+
+### The connection to Resolve
+
+The app talks to Resolve through its scripting interface. In Resolve, set
+**Preferences → System → General → External scripting using: Local** and
+restart Resolve once. The app works with the free version of Resolve. The
+panel inside Resolve (Workspace → Workflow Integrations) needs Resolve Studio.
+
+## HermiteCut 1.0 (panel only)
+
+The 1.0 panel is a **Workflow Integration plugin** for **DaVinci Resolve
 Studio 19 or newer**, tested on 21.2. Workflow Integration plugins are a Studio
 feature, so the free version of Resolve does not show the menu.
 
