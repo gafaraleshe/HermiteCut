@@ -9,6 +9,7 @@ Produces:
   build/plugin/com.hermitelabs.cut/   the Resolve panel: main.js, preload.js, package.json,
                                       manifest.xml, core/, hosts/ (no WorkflowIntegration.node:
                                       Setup copies Resolve's own at install time)
+  build/app/                          the standalone app project (electron-builder)
   build/resources/                    what the app ships next to itself (extraResources):
                                       HermiteCut.drfx, HermiteCut-manifest.json, sfx/, fonts/,
                                       launcher/HermiteCut.lua, plugin/com.hermitelabs.cut/
@@ -67,6 +68,15 @@ def main():
     # the panel carries its own copy of the resources
     copytree(RES, os.path.join(PLUGIN, 'resources'))
     copytree(PLUGIN, os.path.join(RES, 'plugin', 'com.hermitelabs.cut'))
+
+    # the standalone app project for electron-builder: the panel's code plus
+    # build resources; the shared resources go in as extraResources
+    APP = os.path.join(BUILD, 'app')
+    if os.path.exists(APP):
+        shutil.rmtree(APP)
+    copytree(PLUGIN, APP)
+    os.remove(os.path.join(APP, 'manifest.xml'))
+    copytree(os.path.join(ROOT, 'app', 'build-res'), os.path.join(APP, 'build-res'))
 
     version = json.load(open(os.path.join(ROOT, 'app', 'package.json')))['version']
     print(f'Assembled HermiteCut {version}: build/plugin/com.hermitelabs.cut and build/resources')

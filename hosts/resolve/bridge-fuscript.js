@@ -70,7 +70,12 @@ class FuscriptBridge {
                     if (!w) continue;
                     this.pending.delete(msg.id);
                     clearTimeout(w.timer);
-                    if (msg.ok) w.resolve(this.revive(msg.r)); else w.reject(new Error(msg.e || 'Resolve error'));
+                    if (msg.ok) w.resolve(this.revive(msg.r));
+                    // Through a Proxy every method "exists", so the adapter's feature checks
+                    // (has(obj, 'Method')) pass; a method Resolve doesn't have returns
+                    // undefined, which is what those code paths already handle.
+                    else if (/\bno method\b/.test(msg.e || '')) w.resolve(undefined);
+                    else w.reject(new Error(msg.e || 'Resolve error'));
                 }
             });
             setTimeout(() => fail('Resolve did not answer in time. Is External scripting set to Local?'), 15000);
