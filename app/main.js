@@ -206,8 +206,25 @@ async function startMcp() {
     }
 }
 
+// The licence (core/licence): every action needs a valid Polar licence key,
+// in the app, in the panel and through Claude. Off when the build has no
+// Polar organisation.
+function setupLicence() {
+    try {
+        const { buildLicence, gateActions } = require(path.join(ROOT, 'core', 'licence', 'licence.js'));
+        const licence = buildLicence();
+        gateActions(host.api, licence);
+        licence.status()
+            .then(s => log('Licence: ' + (!s.required ? 'off in this build' : s.valid ? 'active (' + s.displayKey + ')' : 'not activated')))
+            .catch(() => 0);
+    } catch (e) {
+        log('Licence module not in this build: ' + (e && e.message));
+    }
+}
+
 app.whenReady().then(() => {
     registerIpc();
+    setupLicence();
     startMcp();
     createWindow();
 });

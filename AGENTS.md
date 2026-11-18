@@ -383,6 +383,16 @@ the Resolve test (step 6 bullets below, then step 10), then publishing.
 
 ## 10. Decisions already made
 
+- **Paid, behind a licence key (2026-11-18).** £30 / $50 one-time, sold through
+  Polar. `core/licence/licence.ts` uses Polar's public licence-key API (activate,
+  validate, deactivate): 2 activations per key, offline after activation,
+  revalidated weekly with 30 days' grace, one activation per computer shared
+  by the app and the panel (`~/.hermitecut/licence.json`). Every action is
+  gated (`gateActions`), including Claude's MCP tools. Licensing switches on
+  when the build has `HC_POLAR_ORGANIZATION_ID` (repo variable
+  `POLAR_ORGANIZATION_ID`); without it the build is free. The owner is making
+  this repo private; installers for buyers come from Polar.
+
 - **Stack: TypeScript + Electron + Rust, with Bun (2026-11-18).** The owner
   chose this for the long term (Windows and macOS). Electron stays the shell,
   which is also what Resolve loads the panel into. TypeScript replaces the

@@ -58,6 +58,16 @@ body.no-glow .backdrop { display: none; }
 /* Mac-style window buttons. On macOS the app shows the system's own (main.js
    sets titleBarStyle and loads the page with ?lights=native), so these hide
    and the title bar leaves room for them. */
+/* Licence screen: covers the tools (not the title bar) until a key is active */
+.lic-gate { position: fixed; inset: 44px 0 0 0; z-index: 900; display: grid; place-items: center; padding: 24px; background: rgba(5,5,5,.86); backdrop-filter: blur(10px); }
+.lic-gate[hidden] { display: none; }
+.lic-card { width: min(420px, 100%); display: grid; gap: 12px; padding: 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface, #111112); box-shadow: 0 30px 80px -20px rgba(0,0,0,.8); text-align: center; }
+.lic-card h2 { margin: 6px 0 0; font-size: 22px; }
+.lic-card .wordmark { justify-self: center; }
+.lic-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: #0a0a0b; color: inherit; font: 500 14px/1.2 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .04em; text-align: center; }
+.lic-input:focus { outline: 2px solid var(--accent, #b9acff); outline-offset: 1px; }
+.lic-err { min-height: 18px; color: #ff7a7a; font-size: 13px; }
+.lic-links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .mcp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
 .mcp-row .hint { margin: 2px 0 0; }
 .lights { display: flex; align-items: center; gap: 8px; margin-right: 10px; padding-left: 2px; }
