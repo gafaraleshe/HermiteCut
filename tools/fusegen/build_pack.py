@@ -34,7 +34,7 @@ PACK = os.path.join(BUILD, 'pack')
 VERSION = '2.0.0-dev'
 
 from fuse import write_setting  # noqa: E402
-from packs import common, effects, timefx, transitions, titles  # noqa: E402
+from packs import common, effects, timefx, transitions, titles, gridreveal  # noqa: E402
 import check_pack  # noqa: E402
 
 
@@ -44,6 +44,7 @@ def generate():
     timefx.build()
     transitions.build()
     titles.build()
+    gridreveal.build()
     names = {}
     for b in common.TEMPLATES:
         key = (b.kind, b.name)
@@ -84,6 +85,9 @@ def main(argv=None):
         exempts = {b.name: b.exempt for b in templates}
         if not check_pack.check_paths([PACK], exempts):
             raise SystemExit('Offline checks failed: fix the templates above before installing the pack.')
+        import test_grid
+        if not test_grid.main([PACK]):
+            raise SystemExit('Grid Reveal checks failed.')
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     if os.path.exists(args.out):

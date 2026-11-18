@@ -34,7 +34,7 @@ import re
 import sys
 
 # ---------------------------------------------------------------- known tools
-IMG = ('Input', 'Background', 'Foreground')
+IMG = ('Input', 'Background', 'Foreground', 'Image1', 'Image2')
 COMMON = {'Blend', 'EffectMask'}
 KNOWN = {
     'AlphaDivide': {'Input'},
@@ -57,6 +57,10 @@ KNOWN = {
     'FilmGrain': {'Input', 'MasterStrength'} | COMMON,
     'TimeSpeed': {'Input', 'Delay', 'InterpolateBetweenFrames'},
     'TimeStretcher': {'Input', 'SourceTime', 'InterpolateBetweenFrames', 'SampleSpread'},
+    'Custom': ({'Image1', 'Image2', 'Image3', 'RedExpression', 'GreenExpression', 'BlueExpression',
+                'AlphaExpression'} | {f'NumberIn{i}' for i in range(1, 9)} | {f'PointIn{i}' for i in range(1, 5)}
+               | {f'Setup{i}' for i in range(1, 5)} | {f'Intermediate{i}' for i in range(1, 5)}
+               | {f'LUTIn{i}' for i in range(1, 5)} | COMMON),
     'RectangleMask': {'Width', 'Height', 'SoftEdge', 'Invert', 'Center', 'CornerRadius', 'Angle'},
     'EllipseMask': {'Width', 'Height', 'SoftEdge', 'Invert', 'Center', 'Angle'},
     'LumaKeyer': {'Input', 'Low', 'High'} | COMMON,
@@ -317,7 +321,10 @@ def evaluate(tree, ref):
         a = [_num(x, name) for x in args]
         fn = {'max': max, 'min': min, 'abs': abs, 'floor': math.floor, 'ceil': math.ceil, 'sin': math.sin,
               'cos': math.cos, 'sqrt': math.sqrt, 'exp': math.exp}[name]
-        return float(fn(*a))
+        try:
+            return float(fn(*a))
+        except (ValueError, OverflowError):
+            return math.nan
     if k == 'bin':
         op = tree[1]
         a, b = evaluate(tree[2], ref), evaluate(tree[3], ref)

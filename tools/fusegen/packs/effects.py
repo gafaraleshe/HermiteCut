@@ -301,6 +301,21 @@ def film_family():
     out = merge(b, 'Flare', hot, soft, mode='Screen', blend=f'min(1, {AMT})')
     done(b, out)
 
+    b = effect('Slow Film Burn', F, 'A slow, drifting film burn that breathes across the whole clip.',
+               mode=3, frames=48, curve=1, strength=0.9)
+    b.control('Speed', slider('Speed', 0.05, 2, 0.3))
+    b.control('Drift', slider('Drift', 0, 1, 0.5))
+    n = noise(b, 'Burn', detail=2.2, contrast='2.2', brightness='-0.42 + 0.12*sin(time*0.02*Controls.Speed)',
+              scale=0.55, seethe_rate='0.035*Controls.Speed',
+              center=(f'0.5 + 0.45*Controls.Drift*{wobble(7, speed="Controls.Speed", base=0.012)}',
+                      f'0.5 + 0.3*Controls.Drift*{wobble(8, speed="Controls.Speed", base=0.009)}'))
+    r, g, bl = b.colour('BurnColour', 'Colour', (1.0, 0.36, 0.06))
+    tint = gain(b, 'Tint', n, f'2.2*{r}', f'2.2*{g}', f'2.2*{bl}', 1)
+    soft = blur(b, 'Heat', tint, 14)
+    hot = bc(b, 'Expose', 'SrcA', Gain=f'1 + 0.25*{AMT}')
+    out = merge(b, 'Flare', hot, soft, mode='Screen', blend=f'min(1, {AMT})')
+    done(b, out)
+
     b = effect('Light Leak', F, 'A soft drifting leak of warm light.', mode=3, frames=24, curve=1, strength=0.8)
     b.control('Speed', slider('Speed', 0.1, 4, 1))
     n = noise(b, 'Leak', detail=0.5, contrast='1.4', brightness='-0.1', scale=0.35,
