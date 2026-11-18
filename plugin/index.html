@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' blob:">
+<title>HermiteCut</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="backdrop"></div>
+<div class="app">
+  <header class="titlebar">
+    <div class="left">
+      <button class="ibtn on" id="btnPin" data-tip="Keep on top of Resolve" data-icon="pin"></button>
+      <button class="ibtn" id="btnRefresh" data-tip="Refresh connection" data-icon="refresh"></button>
+    </div>
+    <div class="wordmark">HERMITE <span class="sub">CUT</span></div>
+    <div class="right">
+      <div class="sets" id="sets">
+        <button data-set="main" class="on">Main tools</button>
+        <button data-set="motion">Motion</button>
+        <button data-set="audio">Beats &amp; Captions</button>
+        <button data-set="all">All</button>
+      </div>
+      <button class="ibtn" id="btnSettings" data-tip="Settings" data-icon="gear"></button>
+      <button class="ibtn" id="btnMin" data-tip="Minimise" data-icon="minus"></button>
+      <button class="ibtn close" id="btnClose" data-tip="Close" data-icon="x"></button>
+    </div>
+  </header>
+
+  <div class="ctx" id="ctx">
+    <span class="dot" id="ctxDot"></span>
+    <span id="ctxMain">Connecting to DaVinci Resolve…</span>
+    <span class="sel" id="ctxSel"></span>
+  </div>
+
+  <main class="dock" id="dock">
+
+    <!-- ============ Ease ============ -->
+    <section class="card" data-mod="ease" data-sets="main,motion,all">
+      <div class="card-h"><span class="ic" data-icon="ease"></span><h2>Ease</h2><span class="spacer"></span>
+        <button class="ibtn" id="eSave" data-tip="Save curve as preset" data-icon="plus"></button>
+        <button class="ibtn" id="eReset" data-tip="Reset to ease" data-icon="undo"></button>
+      </div>
+      <div class="card-b">
+        <div class="well"><span class="cap">Speed graph</span><canvas class="ease-graph" id="eGraph"></canvas></div>
+        <div class="ease-bar">
+          <button class="ibtn" id="eFlip" data-tip="Reverse curve (in ↔ out)" data-icon="swap"></button>
+          <button class="ibtn" id="eCopy" data-tip="Copy cubic-bezier values" data-icon="copy"></button>
+          <div class="code" id="eCode" data-tip="Click to type values">0.25, 0.10, 0.25, 1.00</div>
+        </div>
+        <div class="preset-name" id="eName">Ease</div>
+        <div class="preset-grid" id="ePresets"></div>
+        <label class="check"><input type="checkbox" id="eAll"> No nodes selected → ease every animated node</label>
+        <div class="hint">Fusion page: eases keyframes on the <b>selected nodes</b>. Edit page: eases every keyframe in the <b>selected clips'</b> Fusion comps. Motion uses this curve too.</div>
+      </div>
+      <div class="card-f"><button class="cta" id="eApply"><span data-icon="bolt"></span>Apply ease</button></div>
+    </section>
+
+    <!-- ============ Align ============ -->
+    <section class="card" data-mod="align" data-sets="main,all">
+      <div class="card-h"><span class="ic" data-icon="align"></span><h2>Align</h2><span class="spacer"></span>
+        <button class="ibtn" id="aCopy" data-tip="Copy transform from selected clip" data-icon="copy"></button>
+        <button class="ibtn" id="aPaste" data-tip="Paste transform to selected clips" data-icon="paste"></button>
+      </div>
+      <div class="card-b">
+        <div class="label">Margin <span class="val" id="aMarginV">0%</span></div>
+        <input type="range" id="aMargin" min="0" max="20" step="0.5" value="0">
+        <div class="align-wrap" id="aGrid"></div>
+        <div class="grid-btns" id="aOps"></div>
+        <div class="grid-btns c4" id="aOps2"></div>
+        <div class="section-t">Layouts</div>
+        <div class="layout-btns" id="aLayouts"></div>
+        <div class="label">Gap <span class="val" id="aGapV">0%</span></div>
+        <input type="range" id="aGap" min="0" max="5" step="0.25" value="0">
+        <div class="section-t">Blend &amp; opacity</div>
+        <div class="row">
+          <select id="aBlend">
+            <option value="COMPOSITE_NORMAL">Normal</option><option value="COMPOSITE_SCREEN">Screen</option>
+            <option value="COMPOSITE_ADD">Add</option><option value="COMPOSITE_MULTIPLY">Multiply</option>
+            <option value="COMPOSITE_OVERLAY">Overlay</option><option value="COMPOSITE_SOFTLIGHT">Soft Light</option>
+            <option value="COMPOSITE_LIGHTEN">Lighten</option><option value="COMPOSITE_DARKEN">Darken</option>
+            <option value="COMPOSITE_COLOR_DODGE">Color Dodge</option><option value="COMPOSITE_DIFF">Difference</option>
+          </select>
+          <button class="btn fixed" id="aBlendGo">Set blend</button>
+        </div>
+        <div class="grid-btns c4" id="aOpacity"></div>
+        <div class="section-t">Saved transforms</div>
+        <div class="saved-list" id="aSaved"><span class="hint">Copy a clip's transform, then save it here.</span></div>
+        <button class="btn small" id="aSave" disabled>Save copied transform…</button>
+      </div>
+    </section>
+
+    <!-- ============ Actions ============ -->
+    <section class="card" data-mod="quick" data-sets="main,all">
+      <div class="card-h"><span class="ic" data-icon="grid"></span><h2>Actions</h2><span class="spacer"></span>
+        <button class="ibtn" id="qOptsBtn" data-tip="Action options" data-icon="sliders"></button>
+      </div>
+      <div class="card-b" id="qBody">
+        <div class="q-search"><input type="text" id="qSearch" placeholder="Search actions…  (right-click a button to ★ favourite)"></div>
+        <div class="q-cats" id="qCats"></div>
+        <div class="q-opts" id="qOpts" hidden>
+          <label>Fade / transition frames<input type="number" id="qFrames" value="12" min="1" max="600"></label>
+          <label>Marker colour<select id="qMarker"></select></label>
+          <label>Clip colour<select id="qClipColor"></select></label>
+          <label>Loudness target (LUFS)<input type="number" id="qLufs" value="-14" step="0.5"></label>
+          <label>Silence threshold (dB)<input type="number" id="qSilence" value="-40"></label>
+          <label>Nudge playhead (frames)<input type="number" id="qNudge" value="10"></label>
+        </div>
+        <div class="q-grid" id="qGrid"></div>
+        <div class="section-t">Deliver</div>
+        <div class="row"><select id="qPreset"><option value="">Current render settings</option></select><button class="btn fixed" id="qPresetRefresh" data-icon="refresh" data-tip="Reload presets"></button></div>
+        <div class="row"><button class="btn" id="qFolder" data-tip="Output folder">Choose folder…</button></div>
+        <div class="row"><button class="btn" id="qQueue">Add to queue</button><button class="btn" id="qRender">Queue &amp; render</button></div>
+        <div class="row"><button class="btn" id="qStill">Export still</button><select id="qExpKind"><option value="fcpxml">FCPXML</option><option value="xml">XML (FCP7)</option><option value="edl">EDL</option><option value="otio">OTIO</option><option value="csv">CSV</option><option value="drt">DRT</option></select><button class="btn fixed" id="qExport">Export</button></div>
+      </div>
+    </section>
+
+    <!-- ============ Motion ============ -->
+    <section class="card" data-mod="motion" data-sets="motion,all">
+      <div class="card-h"><span class="ic" data-icon="motion"></span><h2>Motion</h2><span class="spacer"></span>
+        <button class="ibtn" id="mRemove" data-tip="Remove HermiteCut motion from selected clips" data-icon="trash"></button>
+      </div>
+      <div class="card-b">
+        <div class="motion-grid" id="mPresets"></div>
+        <div class="seg" id="mDir"><button data-v="in" class="on">In</button><button data-v="out">Out</button><button data-v="both">In + Out</button></div>
+        <div class="row">
+          <div><div class="label">In (frames)</div><input type="number" id="mIn" value="12" min="1" max="600" style="width:100%"></div>
+          <div><div class="label">Out (frames)</div><input type="number" id="mOut" value="12" min="1" max="600" style="width:100%"></div>
+        </div>
+        <div class="label"><span id="mAmtL">Amount</span> <span class="val" id="mAmtV">20%</span></div>
+        <input type="range" id="mAmt" min="1" max="200" value="20">
+        <div class="curve-chip"><svg id="mCurveSvg" viewBox="-0.1 -0.6 1.2 2.2" preserveAspectRatio="none"></svg><span id="mCurveName">Ease</span><span style="flex:1"></span><label class="check"><input type="checkbox" id="mUseEase" checked> Ease curve</label></div>
+        <label class="check"><input type="checkbox" id="mBlur"> Motion blur</label>
+        <div class="section-t">Fades (native)</div>
+        <div class="grid-btns c3"><button class="btn" id="mFadeIn">Fade in</button><button class="btn" id="mFadeOut">Fade out</button><button class="btn" id="mFadeOff">No fades</button></div>
+        <div class="hint">Animates the <b>selected clips</b> on the Edit page by adding an <b>HC_Motion</b> Transform node to each clip's Fusion comp. Re-applying replaces it.</div>
+      </div>
+      <div class="card-f"><button class="cta" id="mApply"><span data-icon="play"></span>Animate clips</button></div>
+    </section>
+
+    <!-- ============ Bounce ============ -->
+    <section class="card" data-mod="bounce" data-sets="motion,all">
+      <div class="card-h"><span class="ic" data-icon="bounce"></span><h2>Bounce</h2><span class="spacer"></span>
+        <button class="ibtn" id="bPlay" data-tip="Play preview" data-icon="play"></button>
+      </div>
+      <div class="card-b">
+        <div class="well"><span class="cap">Springs &amp; overshoot</span><canvas class="bounce-prev" id="bCanvas"></canvas></div>
+        <div class="mode-cards" id="bModes">
+          <button data-v="overshoot" class="on"><svg viewBox="0 0 40 18"><path d="M2 16 C8 16 9 2 16 2 S22 9 26 7 S32 5 38 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Overshoot</button>
+          <button data-v="bounce"><svg viewBox="0 0 40 18"><path d="M2 2 Q10 2 14 16 Q18 7 22 16 Q25 11 28 16 Q30 14 32 16 L38 16" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Bounce</button>
+        </div>
+        <div class="label">Amplitude <span class="val" id="bAmpV"></span></div><input type="range" id="bAmp" min="0" max="100" value="35">
+        <div class="label">Bounces <span class="val" id="bCntV"></span></div><input type="range" id="bCnt" min="1" max="8" value="3">
+        <div class="label">Decay <span class="val" id="bDecV"></span></div><input type="range" id="bDec" min="0" max="10" step="0.5" value="4">
+        <div class="label">Rise speed <span class="val" id="bRiseV"></span></div><input type="range" id="bRise" min="10" max="60" value="30">
+        <div class="seg" id="bTarget"><button data-v="keys" class="on">Fusion keyframes</button><button data-v="pop">Pop-in clips</button></div>
+        <div class="row" id="bDurRow" hidden><div class="label">Pop duration (frames)</div><input type="number" id="bDur" class="fixed" value="18" min="2" max="300"></div>
+        <div class="hint" id="bHint">Rewrites each move between two keyframes with a spring. Use on clean keys (one start, one end); Ctrl+Z in Fusion undoes it.</div>
+      </div>
+      <div class="card-f"><button class="cta" id="bApply"><span data-icon="bounce"></span>Apply motion</button></div>
+    </section>
+
+    <!-- ============ Beats ============ -->
+    <section class="card" data-mod="beats" data-sets="audio,all">
+      <div class="card-h"><span class="ic" data-icon="beat"></span><h2>Beats</h2><span class="spacer"></span>
+        <button class="ibtn" id="btFile" data-tip="Analyse an audio file instead (markers start at playhead)" data-icon="folder"></button>
+        <button class="ibtn" id="btClear" data-tip="Clear HermiteCut beat markers" data-icon="trash"></button>
+      </div>
+      <div class="card-b">
+        <div class="well"><span class="cap">Find the pulse</span><span class="badge" id="btBadge">Ready</span><canvas class="beat-wave" id="btWave"></canvas>
+          <div class="legend"><span><i></i><b id="btBpm">— bpm</b></span><span class="acc"><i></i><b id="btCount">0 markers</b></span></div>
+        </div>
+        <div class="hint" id="btSrc">Select a clip with audio, then press Analyse.</div>
+        <button class="btn" id="btAnalyse"><span data-icon="wave"></span>Analyse selected clip</button>
+        <div class="label">Detect</div>
+        <div class="seg" id="btMode"><button data-v="beats" class="on">Beats</button><button data-v="mixed">Mixed</button><button data-v="transients">Transients</button></div>
+        <div class="label">Sensitivity <span class="val" id="btSensV"></span></div><input type="range" id="btSens" min="0" max="100" value="55">
+        <div class="label">Mark every</div>
+        <div class="seg" id="btEvery"><button data-v="1" class="on">Beat</button><button data-v="2">2</button><button data-v="4">Bar (4)</button><button data-v="8">8</button></div>
+        <div class="row">
+          <div><div class="label">Offset (frames)</div><input type="number" id="btOffset" value="0" min="-50" max="50" style="width:100%"></div>
+          <div><div class="label">Min gap (frames)</div><input type="number" id="btGap" value="4" min="1" max="200" style="width:100%"></div>
+        </div>
+        <div class="row">
+          <div><div class="label">Marker colour</div><select id="btColor" style="width:100%"></select></div>
+          <div><div class="label">Put markers on</div><select id="btTarget" style="width:100%"><option value="timeline">Timeline</option><option value="clip">Clip</option></select></div>
+        </div>
+      </div>
+      <div class="card-f"><button class="cta" id="btMark"><span data-icon="marker"></span>Mark beats</button></div>
+    </section>
+
+    <!-- ============ Captions ============ -->
+    <section class="card" data-mod="captions" data-sets="audio,all">
+      <div class="card-h"><span class="ic" data-icon="caption"></span><h2>Captions</h2><span class="spacer"></span>
+        <button class="ibtn" id="cImport" data-tip="Import an .srt subtitle file" data-icon="folder"></button>
+      </div>
+      <div class="card-b">
+        <div class="well"><span class="cap">Voice to text</span><span class="badge" id="cBadge">Ready</span><canvas class="cap-viz" id="cViz"></canvas>
+          <div class="legend"><span><i></i>Captions</span><span class="acc"><i></i><b id="cLangL">Auto language</b></span></div>
+        </div>
+        <div class="progress"><i id="cProg"></i></div>
+        <div class="label">Language</div>
+        <select id="cLang"></select>
+        <div class="label">Format</div>
+        <div class="seg" id="cFormat"><button data-v="phrases" class="on">Phrases</button><button data-v="words">Words</button><button data-v="custom">Custom</button></div>
+        <div class="label">Characters per line <span class="val" id="cCplV"></span></div><input type="range" id="cCpl" min="1" max="60" value="42">
+        <div class="row">
+          <div><div class="label">Lines</div><div class="seg" id="cLines"><button data-v="1" class="on">1</button><button data-v="2">2</button></div></div>
+          <div><div class="label">Gap (frames)</div><input type="number" id="cGap" value="0" min="0" max="10" style="width:100%"></div>
+        </div>
+        <div class="label">Style preset</div>
+        <select id="cPreset"><option value="default">Subtitle default</option><option value="netflix">Netflix</option></select>
+        <div class="hint">Uses Resolve Studio's speech-to-text on the whole timeline and adds a subtitle track. Style it in the Inspector (Track Style), or right-click the track → <b>Convert Subtitles to Text+</b> for animated captions.</div>
+      </div>
+      <div class="card-f"><button class="cta glow" id="cCreate"><span data-icon="caption"></span>Create captions</button></div>
+    </section>
+  </main>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<div class="tip" id="tip"></div>
+
+<div class="modal" id="settings">
+  <div class="sheet">
+    <div class="row"><h3>Settings</h3><span></span><button class="ibtn fixed" id="sClose" data-icon="x"></button></div>
+    <div class="label">Accent colour</div>
+    <div class="swatches" id="sSwatches"></div>
+    <label class="check"><input type="checkbox" id="sGlow" checked> Background glow</label>
+    <label class="check"><input type="checkbox" id="sCompact"> Compact density</label>
+    <label class="check"><input type="checkbox" id="sPinDefault" checked> Keep window on top of Resolve</label>
+    <div class="label">Custom “Main tools” set</div>
+    <div class="mod-toggles" id="sMods"></div>
+    <div class="row"><button class="btn" id="sLog">Open log file</button><button class="btn" id="sReset">Reset all settings</button></div>
+    <div class="about">HermiteCut 1.0.0 · a Workflow Integration plugin for DaVinci Resolve Studio, by Hermite Labs.<br>
+      Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1).<br>
+      Open from <b>Workspace → Workflow Integrations → HermiteCut</b>.</div>
+  </div>
+</div>
+
+<script src="js/math.js"></script>
+<script src="js/core.js"></script>
+<script src="js/ease.js"></script>
+<script src="js/align.js"></script>
+<script src="js/quick.js"></script>
+<script src="js/motion.js"></script>
+<script src="js/bounce.js"></script>
+<script src="js/beats.js"></script>
+<script src="js/captions.js"></script>
+<script src="js/settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BlackmagicDesign>
+    <Plugin>
+        <Id>com.hermitelabs.cut</Id>
+        <Name>HermiteCut</Name>
+        <Version>1.0.0</Version>
+        <Description>Animation, alignment, beats, captions and one-click editing tools for DaVinci Resolve Studio</Description>
+        <FilePath>main.js</FilePath>
+    </Plugin>
+</BlackmagicDesign>
