@@ -1,110 +1,69 @@
-# Builds HermiteCut and publishes a GitHub Release.
+# Publishes a GitHub Release of HermiteCut.
 #
-# Run it from the Actions tab (Release > Run workflow), or push a tag such as v2.0.0.
-# One run builds:
-#   - HermiteCut-Windows-Setup.exe        the app (NSIS, per-user)          windows-latest
-#   - HermiteCut-Mac-arm64.dmg / -x64.dmg the app, ad-hoc signed             macos-14
-#   - HermiteCut-v<ver>-windows-panel.zip the Resolve panel on its own        ubuntu
-#   - HermiteCut.drfx                     the template pack on its own
-# then creates the tag v<version> (from app/package.json) and the release, with
-# notes from that version's section of CHANGELOG.md.
+# Runs on every push to main. If the version in app/package.json has no
+# release yet, it builds everything (build.yml) and publishes v<version> with
+# notes from that version's section of CHANGELOG.md. If that release already
+# exists, it stops after one quick check. So: bump the version and add a
+# CHANGELOG section, merge to main, and the release appears.
+#
+# Running it from the Actions tab (Release > Run workflow), or pushing a tag
+# v*, always builds and replaces the files on that version's release.
 name: Release
 
 on:
-  workflow_dispatch:
   push:
+    branches: [main]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  assemble:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      publish: ${{ steps.v.outputs.publish }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
-      - name: Check sources
-        run: |
-          for f in app/*.js hosts/resolve/*.js core/lib/*.js core/ui/js/*.js; do node --check "$f"; done
-          test -z "$(gofmt -l installer)"
-      - name: Build the pack, sounds, panel and app project
-        run: |
-          pip install numpy==2.1.3
-          python scripts/assemble.py
-      - name: Build the panel-only Windows installer
-        run: scripts/build-windows.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: assembled
-          path: |
-            build/app
-            build/HermiteCut.drfx
-            dist/*.zip
-          if-no-files-found: error
-
-  windows:
-    needs: assemble
-    runs-on: windows-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: assembled
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Build the Windows installer
-        working-directory: build/app
-        run: |
-          npm install --no-audit --no-fund
-          npx electron-builder --win --publish never
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows
-          path: build/app/dist/HermiteCut-Windows-Setup.exe
-          if-no-files-found: error
-
-  mac:
-    needs: assemble
-    runs-on: macos-14
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: assembled
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Build the macOS disk images (Apple Silicon and Intel)
-        working-directory: build/app
+      - id: v
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          GH_TOKEN: ${{ github.token }}
         run: |
-          npm install --no-audit --no-fund
-          npx electron-builder --mac --publish never
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mac
-          path: build/app/dist/*.dmg
-          if-no-files-found: error
+          VERSION=$(python3 -c "import json; print(json.load(open('app/package.json'))['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$GITHUB_REF_TYPE" = branch ] && gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "v$VERSION is already released; nothing to do."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Building and publishing v$VERSION."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: check
+    if: needs.check.outputs.publish == 'true'
+    uses: ./.github/workflows/build.yml
 
   release:
-    needs: [assemble, windows, mac]
+    needs: [check, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
+          pattern: HermiteCut-*
           path: out
           merge-multiple: true
       - name: Release notes
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
         run: |
-          VERSION=$(python3 -c "import json; print(json.load(open('app/package.json'))['version'])")
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           python3 - "$VERSION" > notes.md <<'PY'
           import re, sys
           v = sys.argv[1]
@@ -116,11 +75,13 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check.outputs.version }}
         run: |
           TAG="v$VERSION"
           FILES=$(find out -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.drfx' \) | sort)
+          test -n "$FILES"
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" $FILES --clobber
           else
-            gh release create "$TAG" $FILES --title "HermiteCut $VERSION" --notes-file notes.md --target "$GITHUB_SHA"
+            gh release create "$TAG" $FILES --title "HermiteCut $VERSION" --notes-file notes.md --target "$GITHUB_SHA" --latest
           fi
