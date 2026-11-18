@@ -28,7 +28,7 @@ library and an asset library.
 
 ### Added
 - **Template pack** (`HermiteCut.drfx`): 91 Fusion templates.
-  - 39 effects: flashes, shakes, blurs, motion, glitch, film and light,
+  - 37 effects: flashes, shakes, blurs, motion, glitch, film and light,
     including **Slow Film Burn**. Every effect has **Apply at** (Post / Pre /
     Both / Whole), **Frames**, **Curve**, **Strength** and **Seed**.
   - 5 time effects: **Slow Shutter** (180°, 360°, 720° and 1440°), Echo,
