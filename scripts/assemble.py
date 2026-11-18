@@ -38,17 +38,25 @@ def copytree(src, dst):
     shutil.copytree(src, dst, ignore=IGNORE)
 
 
+# TypeScript compiled into the app for Electron (CommonJS), with Bun.
+TS_ENTRIES = [
+    ('lib/engine.ts', 'lib/engine.js'),   # loads the Rust engine
+    ('mcp/server.ts', 'mcp/server.js'),   # the local MCP server for Claude
+]
+
+
 def compile_engine(core_dir):
-    """core/lib/engine.ts -> <core_dir>/lib/engine.js (CommonJS for Electron), with Bun.
-    Without Bun the build still works: the app uses its JavaScript code instead
-    of the Rust engine."""
+    """Compile TS_ENTRIES into <core_dir>. Without Bun the build still works:
+    the app uses its JavaScript code instead of the Rust engine, and has no
+    MCP server."""
     bun = shutil.which('bun')
     if not bun:
-        print('warning: Bun not found, so this build runs without the Rust engine (https://bun.sh)')
+        print('warning: Bun not found, so this build has no Rust engine or MCP server (https://bun.sh)')
         return
-    subprocess.check_call([bun, 'build', os.path.join(ROOT, 'core', 'lib', 'engine.ts'),
-                           '--target=node', '--format=cjs',
-                           '--outfile', os.path.join(core_dir, 'lib', 'engine.js')], cwd=ROOT)
+    for src, out in TS_ENTRIES:
+        subprocess.check_call([bun, 'build', os.path.join(ROOT, 'core', src),
+                               '--target=node', '--format=cjs',
+                               '--outfile', os.path.join(core_dir, out)], cwd=ROOT)
 
 
 def main():

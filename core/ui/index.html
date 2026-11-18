@@ -11,6 +11,11 @@
 <div class="app">
   <header class="titlebar">
     <div class="left">
+      <div class="lights" role="group" aria-label="Window">
+        <button class="light close" id="btnClose" aria-label="Close" title="Close"></button>
+        <button class="light min" id="btnMin" aria-label="Minimise" title="Minimise"></button>
+        <button class="light zoom" id="btnZoom" aria-label="Zoom" title="Zoom"></button>
+      </div>
       <button class="ibtn on" id="btnPin" data-tip="Keep on top of Resolve" data-icon="pin"></button>
       <button class="ibtn" id="btnRefresh" data-tip="Refresh connection" data-icon="refresh"></button>
     </div>
@@ -27,8 +32,6 @@
         <button data-set="all">All</button>
       </div>
       <button class="ibtn" id="btnSettings" data-tip="Settings" data-icon="gear"></button>
-      <button class="ibtn" id="btnMin" data-tip="Minimise" data-icon="minus"></button>
-      <button class="ibtn close" id="btnClose" data-tip="Close" data-icon="x"></button>
     </div>
   </header>
 
@@ -313,6 +316,20 @@
       </div>
       <div class="card-f"><button class="cta glow" id="suAll"><span data-icon="wrench"></span>Install everything</button></div>
     </section>
+
+    <!-- ============ Claude (MCP) ============ -->
+    <section class="card" data-mod="claude" data-sets="setup,all">
+      <div class="card-h"><span class="ic" data-icon="spark"></span><h2>Claude</h2><span class="spacer"></span>
+        <button class="ibtn" id="mcpCheck" data-tip="Check again" data-icon="refresh"></button>
+      </div>
+      <div class="card-b">
+        <div class="su-row"><span class="su-dot" id="mcpDot"></span>
+          <div class="su-t"><div id="mcpState">Checking…</div><div class="hint">Claude can use HermiteCut in Resolve: apply templates, add transitions and titles, place sounds and run actions on the selected clips. It only listens on this computer and needs a private key, which these buttons include.</div></div></div>
+        <div class="mcp-row"><div><b>Claude Code</b><div class="hint">Paste into a terminal.</div></div><button class="btn sm" id="mcpCopyCode">Copy command</button></div>
+        <div class="mcp-row"><div><b>Claude Desktop</b><div class="hint">Settings → Developer → Edit Config, paste into claude_desktop_config.json, then restart Claude.</div></div><button class="btn sm" id="mcpCopyDesktop">Copy config</button></div>
+        <div class="hint">Keep HermiteCut (or its panel in Resolve) open while you work with Claude.</div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -330,7 +347,7 @@
     <div class="label">Custom “Main tools” set</div>
     <div class="mod-toggles" id="sMods"></div>
     <div class="row"><button class="btn" id="sLog">Open log file</button><button class="btn" id="sReset">Reset all settings</button></div>
-    <div class="about">HermiteCut 2.0.1 · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
+    <div class="about">HermiteCut 2.1.0 · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
       Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1).<br>
       Open from <b>Workspace → Workflow Integrations → HermiteCut</b>.</div>
   </div>

@@ -345,12 +345,32 @@
         renderSetup();
     }
 
+    // ------------------------------------------------------------ Claude (MCP)
+    let MCP = null;
+    async function renderMcp() {
+        try { MCP = await HC.call('mcpInfo', {}, { silent: true }); } catch (e) { MCP = null; }
+        const on = !!(MCP && MCP.running);
+        $('#mcpDot').classList.toggle('ok', on);
+        $('#mcpState').textContent = on ? `Ready for Claude · ${MCP.tools} tools on this computer` : 'Not running' + (MCP && MCP.reason ? ' · ' + MCP.reason : '');
+        $('#mcpCopyCode').disabled = !on;
+        $('#mcpCopyDesktop').disabled = !(on && MCP.bridge);
+        $('#mcpCopyDesktop').title = on && !MCP.bridge ? 'The Claude Desktop bridge is not in this build. Use Claude Code, or update HermiteCut.' : '';
+    }
+    function initMcp() {
+        if (!$('#mcpState')) return;
+        const copy = async (text, what) => { await window.hermite.win('copy', text); HC.toast(what + ' copied', 'ok'); };
+        $('#mcpCopyCode').addEventListener('click', () => MCP && copy(MCP.claudeCode, 'Claude Code command'));
+        $('#mcpCopyDesktop').addEventListener('click', () => MCP && copy(MCP.claudeDesktop, 'Claude Desktop config'));
+        $('#mcpCheck').addEventListener('click', renderMcp);
+        renderMcp();
+    }
+
     async function init() {
         if (!$('#tList')) return;
         try { CAT = await window.hermite.call('catalogue', {}).then(r => (r && r.ok) ? r.result : CAT); } catch (e) { /* */ }
         CAT.templates = CAT.templates || []; CAT.sounds = CAT.sounds || [];
         initTemplates(); renderTemplates();
-        initGrid(); initSound(); renderSounds(); initLibrary(); initCaptionsPlus(); initShorts(); initSetup();
+        initGrid(); initSound(); renderSounds(); initLibrary(); initCaptionsPlus(); initShorts(); initSetup(); initMcp();
     }
     document.addEventListener('DOMContentLoaded', init);
     if (document.readyState !== 'loading') init();

@@ -67,6 +67,13 @@ package.json          Bun: scripts, TypeScript (tsconfig.json), tests; bun.lock
     puts it in the app and the panel.
   - **Log:** the log says which engine is running.
 
+- **Claude over MCP (2.1.0).**
+  - `core/mcp/server.ts`: a local MCP server in the app and the panel. It
+    speaks Streamable HTTP on 127.0.0.1, needs a bearer token, refuses web
+    origins, and offers 12 tools over the existing actions.
+  - `crates/hc-mcp`: the stdio bridge for Claude Desktop. Bun tests run it
+    against the server end to end.
+
 ## Next, in order
 
 1. **Setup in Rust.** The four Setup actions call `hc-node` once they've been
