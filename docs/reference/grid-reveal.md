@@ -108,3 +108,75 @@ On the test clips (`tools/dev/make_test_clips.sh`):
   `frametools.py`;
 - grid lines sit on the cell borders (no offset) at 1920 × 1080, 3840 × 2160
   and 1080 × 1920.
+
+## Full spec: make it the best grid effect in Resolve
+
+The owner wants this tool to be "as flexible as possible, very smooth and
+effective". It should have everything. Treat the tutorial as the baseline and
+build all of the following. Group the controls in the Inspector as below, and
+give the app a live preview and presets.
+
+### Grid
+- **Cells across** with rows set automatically to keep cells square, or rows
+  and columns set separately.
+- **Fit to:** frame or safe area.
+- **Offset X / Y**, **rotation**, **perspective tilt**.
+- Lock to a **tracker or planar track**, so the grid sticks to a surface.
+
+### Lines
+- Show or hide each of: lines, outer border, major lines every N cells.
+- **Width**, **colour**, **opacity**, **glow**, **dashed** option.
+- **Line animation:** draw-on (lines grow in from a corner, the centre or the
+  edges), fade in and out, and a pulse to the beat.
+
+### Cells (smoothness)
+- No hard pop by default. Each cell **animates** as it switches: scale-in
+  (from 0 or 120 %), fade, flip, slide or a white flash. Settings: **duration**
+  (frames), **ease curve** (shared with Ease) and overshoot (shared with
+  Bounce).
+- **Stagger:** the order and delay in which cells turn on. Options:
+  - follow the subject,
+  - row by row,
+  - column by column,
+  - diagonal,
+  - from centre outwards,
+  - spiral,
+  - random (with a seed),
+  - by brightness.
+- **Gap between cells**, **rounded corners**, **feather**. Square stays the
+  default.
+- **Fill:** next shot (transparent), white, black, any colour, blur of the
+  current shot, inverted, or a different clip per cell (collage).
+- **Hold cells:** a cell that turned on stays on until the end, or it follows
+  the subject live.
+
+### Matte (what drives the reveal)
+- Magic Mask: the subject is tracked, which needs Studio and the user's stroke.
+- Luma, chroma or the alpha of a clip.
+- A timed wipe for the automatic transition variants.
+- A hand-drawn mask.
+- **Threshold**, **grow / shrink by N cells**, **invert**,
+  **temporal smoothing** (stops cells flickering on and off).
+
+### Timing
+- As a transition: duration and alignment.
+- As an effect: **Apply at** Post / Pre / Both / Whole, matching the other
+  HermiteCut effects.
+- **Sync to beats:** cells or lines step on HermiteCut beat markers.
+- **Motion blur** on cell animation.
+
+### Extras
+- **Sound:** one click adds a matching SFX (digital ticks or a whoosh) from
+  the HermiteCut sound library.
+- **Presets:** at least 10 shipped looks (Clean Reveal, Hand Track, Beat Grid,
+  Glitch Grid, Collage, White Flash Grid, Neon Grid, Mosaic Out, Diagonal
+  Sweep, Spiral In), and user-saved presets.
+- **Performance:** a "fast preview" switch that lowers mosaic and matte
+  resolution while scrubbing.
+
+### Quality bar
+- Lines and cells line up to the pixel at every resolution and aspect ratio,
+  including vertical 9:16.
+- No flicker when nothing is moving.
+- Undo removes everything the tool added.
+- Every preset is checked with frame grabs before shipping.
