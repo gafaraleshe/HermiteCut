@@ -87,3 +87,75 @@ def grab(project, timeline, frame_offset=None, path=None):
         raise RuntimeError('ExportCurrentFrameAsStill failed (is the Edit or Color page open?)')
     with open(path, 'rb') as fh:
         return fh.read()
+
+
+def mean_diff(png_a, png_b, step=4):
+    """Mean absolute difference of two frames (0-255, RGB), sampling every
+    `step` pixels. 0 means identical."""
+    wa, ha, ca, ra = decode_png(png_a)
+    wb, hb, cb, rb = decode_png(png_b)
+    if (wa, ha) != (wb, hb):
+        raise ValueError('frames differ in size: %dx%d vs %dx%d' % (wa, ha, wb, hb))
+    total = count = 0
+    for y in range(0, ha, step):
+        a, b = ra[y], rb[y]
+        for x in range(0, wa, step):
+            i, j = x * ca, x * cb
+            total += abs(a[i] - b[j]) + abs(a[i + 1] - b[j + 1]) + abs(a[i + 2] - b[j + 2])
+            count += 3
+    return total / max(1, count)
+
+
+def encode_png(w, h, rows):
+    """8-bit RGB PNG from a list of `h` bytearrays of `w * 3` bytes."""
+    raw = b''.join(b'\x00' + bytes(r) for r in rows)
+
+    def chunk(kind, data):
+        c = struct.pack('>I', len(data)) + kind + data
+        return c + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+    return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)) +
+            chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
+def thumbnail(png, width=320, height=180):
+    """Scale a frame down to width x height (box filter, centre-cropped to the
+    same aspect ratio) and return it as PNG bytes."""
+    w, h, ch, rows = decode_png(png)
+    aspect = width / float(height)
+    cw, chh = (w, int(round(w / aspect))) if w / float(h) < aspect else (int(round(h * aspect)), h)
+    x0, y0 = (w - cw) // 2, (h - chh) // 2
+    out = []
+    for ty in range(height):
+        ya, yb = y0 + ty * chh // height, max(y0 + (ty + 1) * chh // height, y0 + ty * chh // height + 1)
+        line = bytearray(width * 3)
+        for tx in range(width):
+            xa, xb = x0 + tx * cw // width, max(x0 + (tx + 1) * cw // width, x0 + tx * cw // width + 1)
+            sr = sg = sb = n = 0
+            for y in range(ya, yb, max(1, (yb - ya) // 3)):
+                r = rows[y]
+                for x in range(xa, xb, max(1, (xb - xa) // 3)):
+                    i = x * ch
+                    sr += r[i]
+                    sg += r[i + 1]
+                    sb += r[i + 2]
+                    n += 1
+            line[tx * 3:tx * 3 + 3] = bytes((sr // n, sg // n, sb // n))
+        out.append(line)
+    return encode_png(width, height, out)
+
+
+def black_bars(png, threshold=3.0):
+    """Fraction of the frame height covered by solid black rows at the top and
+    at the bottom, as (top, bottom). Used to check the Letterbox effect."""
+    w, h, ch, rows = decode_png(png)
+
+    def dark(y):
+        r = rows[y]
+        return sum(r[x] + r[x + 1] + r[x + 2] for x in range(0, w * ch, ch * 4)) / (3.0 * len(range(0, w, 4))) < threshold
+    top = 0
+    while top < h and dark(top):
+        top += 1
+    bottom = 0
+    while bottom < h - top and dark(h - 1 - bottom):
+        bottom += 1
+    return top / float(h), bottom / float(h)

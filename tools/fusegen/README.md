@@ -15,8 +15,29 @@ source instead of hand-edited in Fusion.
 ## Quick start
 
 ```bash
-python tools/fusegen/examples/dev_pack.py   # -> build/HermiteCut Dev.drfx
+python tools/fusegen/build_pack.py          # -> build/HermiteCut.drfx (77 templates) + manifest
+python tools/fusegen/install_pack.py        # copy it into Resolve's Templates folder
+python tools/fusegen/examples/dev_pack.py   # -> build/HermiteCut Dev.drfx (3 test templates)
 ```
+
+## The HermiteCut pack
+
+| File | Contents |
+|---|---|
+| `packs/common.py` | The `Build` object (tools, Inspector controls and groups, manifest entry), the shared timing maths (`effect_raw`, `effect_curve`, `transition_curve`), noise helpers and tool helpers (`xf`, `merge`, `bc`, `time_tap`, `plate`, `rgb_split`…) |
+| `packs/effects.py` | Flashes, Shakes, Blurs, Motion (including the Hermite Motion presets), Glitch, Film & Light |
+| `packs/timefx.py` | Slow Shutter, Echo, Prism, Stutter, Time Shift |
+| `packs/transitions.py` | 24 transitions with Direction, Curve, Blur, Glow and Flash |
+| `packs/titles.py` | Credits, lower third, social, cinematic, neon location, caption |
+| `build_pack.py` | Writes every template, adds thumbnails, runs the checks, zips the `.drfx` and writes `build/HermiteCut-manifest.json` |
+| `check_pack.py` | Offline checks (see its docstring); also works on single files |
+| `install_pack.py` | Installs, updates or removes the pack; `--remove-dev` deletes old dev packs |
+| `thumbs/<Kind>/<Name>.png` | Committed thumbnails, rendered in Resolve by `tools/dev/test_pack.py` |
+
+To add a template: write a function in the right pack file that creates a
+`Build` through `effect()` / `transition()` / `Title`, adds its tools and
+controls, and calls `done()` / `finish()` / `build()`. Rebuild. The checker
+then tells you whether it keeps the clip untouched outside its window.
 
 Copy the `.drfx` into the Fusion Templates folder and restart Resolve:
 
@@ -44,7 +65,10 @@ Copy the `.drfx` into the Fusion Templates folder and restart Resolve:
   `Fusion/Effects/HermiteCut/<Name>`.
 - **Controls holder:** put all `UserControls` on a pass-through
   `AlphaDivide` named `Controls`, and drive the other tools with expressions
-  (`Controls.Strength`).
+  (`Controls.Strength`). Hidden controls on it (`Raw`, `Env`, `Prog`, `Peak`,
+  `Vis`) hold the timing maths, so it is written once per template.
+- **Entry point:** the macro's main input goes into a `PipeRouter` called
+  `SrcA` (and `SrcB` for transitions), so any number of tools can read it.
 - **Inputs:**
   - effects: `MainInput1` → `MainOutput1`;
   - transitions: `MainInput1` = outgoing (Background), `MainInput2` = incoming

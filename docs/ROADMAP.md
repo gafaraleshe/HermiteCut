@@ -13,7 +13,7 @@
 |---|---|
 | Check the external bridge (fuscript), template install and loading, and placement APIs | ✅ Done (see [RESOLVE_API_NOTES.md](RESOLVE_API_NOTES.md)) |
 | `tools/fusegen`: macro writer plus a dev pack proven in Resolve (effect, transition, title) | ✅ Done |
-| Effect, transition and title packs (`HermiteCut.drfx`, with thumbnails) | ⏳ Next |
+| Effect, transition and title packs (`HermiteCut.drfx`): 77 templates generated, passing offline checks | 🛠 Built; in-Resolve test and thumbnails pending |
 | SFX library (made in-house) and the asset library indexer | ⏳ |
 | Standalone app: bridge, new UI modules, setup screen | ⏳ |
 | Packaging: Windows `.exe`, macOS `.dmg` (arm64 + x64) | ⏳ |
@@ -83,10 +83,10 @@ selected clips.
 
 | Group | Effects |
 |---|---|
-| Flashes | Flash, Glow Flash, 1-Frame Flash, Colour Flash, Exposure Pop, Strobe |
+| Flashes | Flash, Glow Flash, Frame Flash (one frame), Colour Flash, Exposure Pop, Strobe |
 | Shakes | Twitch, XY Shake, Vertical Shake, Zoom Shake, Earthquake, Handheld |
-| Blurs | Defocus, Zoom Blur, Directional / Whip Blur, Glow Blur |
-| Transforms | Zoom-In Punch, Zoom Out, Slide, Spin, Bounce, Smooth Zoom |
+| Blurs | Defocus, Zoom Blur, Whip Blur, Glow Blur |
+| Motion | Zoom Punch, Zoom Out, Slide, Spin, Pop, Bounce, Smooth Zoom, Ken Burns, Fade Move (includes the Hermite Motion presets) |
 | Glitch | RGB Split, Digital Glitch, VHS, Invert, Pixelate |
 | Film & light | Film Burn, Light Leak, Film Look, Gate Weave, Vignette Pulse, Letterbox |
 
