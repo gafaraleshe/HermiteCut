@@ -116,7 +116,7 @@ plugin/            The Resolve Workflow Integration plugin (Electron)
   lib/lua.js       Lua run inside Fusion comps (keyframes, motion nodes)
   lib/motion.js    motion preset maths
   index.html, css/, js/, fonts/, img/   the panel UI
-crates/            the Rust version: installer, core, Resolve adapter, desktop app (docs/RUST_PLAN.md)
+crates/            the Rust engine and tools: installer, core, Resolve folders and setup (docs/RUST_PLAN.md)
 packaging/         files shipped next to the panel-only installer
 scripts/           build scripts (Windows installer + zip) and a dev install script
 tools/fusegen/     Python generator for Fusion macros (.setting) and .drfx packs (v2 templates)

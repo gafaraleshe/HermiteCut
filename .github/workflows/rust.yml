@@ -1,10 +1,5 @@
-# The Rust version of HermiteCut (crates/, docs/RUST_PLAN.md).
-#
-# test     cargo fmt, clippy and the tests on Windows, macOS and Linux
-# preview  the Rust desktop app (Tauri) for Windows (NSIS installer) and macOS
-#          (one universal .dmg for Apple Silicon and Intel), kept as run
-#          artifacts for 30 days. Not released yet: the Electron app is still
-#          the release until the Rust app reaches parity.
+# HermiteCut's Rust crates (crates/, docs/RUST_PLAN.md): cargo fmt, clippy
+# and the tests on Windows, macOS and Linux.
 name: Rust
 
 on:
@@ -14,7 +9,6 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.cargo/**'
-      - 'core/ui/**'
       - 'hosts/resolve/bridge.lua'
       - '.github/workflows/rust.yml'
   workflow_dispatch:
@@ -24,7 +18,6 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  TAURI_CLI_VERSION: '2.12.4'
 
 jobs:
   test:
@@ -43,64 +36,8 @@ jobs:
         run: |
           python3 -c "import zipfile; z=zipfile.ZipFile('interop.zip','w'); z.writestr('Pack/Grade.cube','LUT_3D_SIZE 33\n'*400, compress_type=zipfile.ZIP_DEFLATED); z.writestr('Pack/Hit.wav', b'RIFF'+bytes(64)); z.close()" \
             || python -c "import zipfile; z=zipfile.ZipFile('interop.zip','w'); z.writestr('Pack/Grade.cube','LUT_3D_SIZE 33\n'*400, compress_type=zipfile.ZIP_DEFLATED); z.writestr('Pack/Hit.wav', b'RIFF'+bytes(64)); z.close()"
-          echo "HC_TEST_ZIP=$PWD/interop.zip" >> "$GITHUB_ENV"
+          echo "HC_TEST_ZIP=${{ github.workspace }}/interop.zip" >> "$GITHUB_ENV"
       - name: Clippy
-        run: cargo clippy --locked --workspace --exclude hc-app --all-targets -- -D warnings
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
       - name: Test
-        run: cargo test --locked --workspace --exclude hc-app
-
-  assemble:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Build the pack, sounds and panel
-        run: |
-          pip install numpy==2.1.3
-          python scripts/assemble.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: resources
-          path: build/resources
-          retention-days: 1
-          if-no-files-found: error
-
-  preview:
-    needs: [test, assemble]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            name: Windows
-            args: --bundles nsis
-            files: target/release/bundle/nsis/*.exe
-          - os: macos-latest
-            name: Mac
-            args: --bundles dmg --target universal-apple-darwin
-            files: target/universal-apple-darwin/release/bundle/dmg/*.dmg
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: resources
-          path: build/resources
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Rust targets for a universal Mac app
-        if: runner.os == 'macOS'
-        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
-      - name: Build the app
-        working-directory: crates/hc-app
-        shell: bash
-        run: npx --yes "@tauri-apps/cli@${TAURI_CLI_VERSION}" build ${{ matrix.args }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: HermiteCut-Rust-Preview-${{ matrix.name }}
-          path: ${{ matrix.files }}
-          retention-days: 30
-          if-no-files-found: error
+        run: cargo test --locked --workspace

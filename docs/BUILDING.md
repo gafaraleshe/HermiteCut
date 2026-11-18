@@ -6,7 +6,7 @@
 |---|---|
 | Run the plugin | DaVinci Resolve **Studio** 19+ |
 | Build the panel-only installer | [Rust](https://rustup.rs) (stable). From Linux / macOS also the `x86_64-pc-windows-gnu` target, MinGW and `zip` |
-| The Rust app and crates | Rust (stable); see [RUST_PLAN.md](RUST_PLAN.md) |
+| The Rust crates | Rust (stable); see [RUST_PLAN.md](RUST_PLAN.md) |
 | Screenshots of the panel | Python 3.10+, `pip install playwright` (and `playwright install chromium` if no Chrome is installed) |
 | Test clips | `ffmpeg` |
 | Template packs (v2) | Python 3.10+ |
@@ -87,7 +87,7 @@ its stack trace.
   Run it after every UI change, and treat new errors as failures.
 - **Syntax:** `for f in plugin/*.js plugin/lib/*.js plugin/js/*.js; do node --check "$f"; done`
 - **Rust:** `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`
-  and `cargo test --workspace --exclude hc-app`. The installer tests run with or
+  and `cargo test --workspace`. The installer tests run with or
   without an assembled panel.
 
 ## Test in Resolve (manual checklist)

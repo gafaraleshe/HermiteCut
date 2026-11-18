@@ -7,8 +7,10 @@ All notable changes to HermiteCut are listed here. The format follows
 ## [Unreleased]
 
 ### Added
-- The start of HermiteCut in Rust (docs/RUST_PLAN.md): the core, the Resolve
-  connection and a preview of the desktop app, built for Windows and macOS.
+- The start of HermiteCut's Rust engine (docs/RUST_PLAN.md): the asset
+  library, the catalogue, Resolve's folders and the Setup operations, tested
+  on Windows, macOS and Linux. The app moves to TypeScript + Electron + Rust,
+  with Bun for development.
 
 ## [2.0.0] - 2026-11-18
 

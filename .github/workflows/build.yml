@@ -13,7 +13,7 @@ name: Build
 on:
   push:
     branches-ignore: [main]
-    paths-ignore: ['**.md', 'docs/**', 'crates/hc-app/**', '.github/workflows/rust.yml']
+    paths-ignore: ['**.md', 'docs/**', '.github/workflows/rust.yml']
   workflow_dispatch:
   workflow_call:
 

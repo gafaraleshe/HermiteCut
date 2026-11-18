@@ -104,11 +104,11 @@ hosts/resolve/       the Resolve adapter: index.js (picks plugin or fuscript bri
                      plugin/manifest.xml, launcher/HermiteCut.lua (Workspace > Scripts)
 app/                 Electron main + preload for both modes; package.json = electron-builder config
 crates/              the Rust version (docs/RUST_PLAN.md): hc-paths, hc-installer (the panel-only
-                     installer, replaced Go), hc-core, hc-resolve, hc-app (Tauri desktop app)
+                     installer, replaced Go), hc-core, hc-resolve; next: hc-node (the napi-rs addon for Electron)
 packaging/           files shipped next to the panel-only installer
 installer/vercel.json  only stops the Vercel "installer" project deploying (see Open questions)
 .github/workflows/   build.yml (every branch push: Windows .exe, Mac .dmgs, panel zip, pack as artifacts),
-                     release.yml (main: publishes v<version> once), rust.yml (Rust tests + preview app)
+                     release.yml (main: publishes v<version> once), rust.yml (Rust fmt, clippy, tests)
 scripts/             assemble.py (build/plugin, build/app, build/resources), build-windows.sh/.ps1, dev-install.bat
 tools/sfxgen/        sfxgen.py: the 81-sound library, made in code (build/sfx)
 tools/fusegen/       Python → Fusion .setting / .drfx generator (v2 templates)
@@ -129,7 +129,7 @@ python scripts/assemble.py                # pack + checks + sounds + build/plugi
 (cd build/app && npm install && npx electron-builder --win|--mac)   # what CI does
 python tools/dev/screenshot.py            # renders the UI with a mock bridge; must print "no console errors"
 scripts/build-windows.sh                  # dist/HermiteCut-v<ver>-windows-panel.zip (Rust + MinGW; CI uses build-windows.ps1)
-cargo test --workspace --exclude hc-app   # the Rust crates; cargo run -p hc-app runs the Rust app
+cargo test --workspace                    # the Rust crates
 # releases: merge a new version to main -> release.yml builds everything and publishes v<ver>
 python tools/fusegen/examples/dev_pack.py # build/HermiteCut Dev.drfx
 python tools/fusegen/build_pack.py        # build/HermiteCut.drfx (+ offline checks, manifest)
@@ -381,12 +381,14 @@ the Resolve test (step 6 bullets below, then step 10), then publishing.
 
 ## 10. Decisions already made
 
-- **Rust, long term (2026-11-18).** The owner wants HermiteCut rebuilt in Rust for
-  Windows and macOS. Plan and status: docs/RUST_PLAN.md. The Go installer is
-  replaced by `crates/hc-installer`; the desktop app moves to Tauri (`crates/hc-app`)
-  with `core/ui` unchanged. The panel inside Resolve stays JavaScript, because
-  Resolve loads it into its own Electron. The Electron app stays the release
-  until the Rust app reaches parity. Code before the move: branch `backup/v2-electron`.
+- **Stack: TypeScript + Electron + Rust, with Bun (2026-11-18).** The owner
+  chose this for the long term (Windows and macOS). Electron stays the shell,
+  which is also what Resolve loads the panel into. TypeScript replaces the
+  JavaScript. Rust is the engine, loaded into Electron as a napi-rs addon, plus
+  the standalone tools. Bun handles packages, scripts, bundling and TS tests
+  (Electron still runs Node). Plan and status: docs/RUST_PLAN.md. The Go
+  installer is replaced by `crates/hc-installer`. A short-lived Tauri shell was
+  dropped for this. Code before the move: branch `backup/v2-electron`.
 
 - Effects are **per-clip Fusion effects** (`AddEffect`), not adjustment clips,
   so they travel with the clip. Stacking means adding more effects.
