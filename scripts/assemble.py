@@ -25,7 +25,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 BUILD = os.path.join(ROOT, 'build')
 PLUGIN = os.path.join(BUILD, 'plugin', 'com.hermitelabs.cut')
 RES = os.path.join(BUILD, 'resources')
-IGNORE = shutil.ignore_patterns('WorkflowIntegration.node', 'devtools.flag', '__pycache__', '*.pyc', '.DS_Store')
+IGNORE = shutil.ignore_patterns('WorkflowIntegration.node', 'devtools.flag', '__pycache__', '*.pyc', '.DS_Store', '*.ts')
 
 
 def run(*args):
@@ -36,6 +36,19 @@ def copytree(src, dst):
     if os.path.exists(dst):
         shutil.rmtree(dst)
     shutil.copytree(src, dst, ignore=IGNORE)
+
+
+def compile_engine(core_dir):
+    """core/lib/engine.ts -> <core_dir>/lib/engine.js (CommonJS for Electron), with Bun.
+    Without Bun the build still works: the app uses its JavaScript code instead
+    of the Rust engine."""
+    bun = shutil.which('bun')
+    if not bun:
+        print('warning: Bun not found, so this build runs without the Rust engine (https://bun.sh)')
+        return
+    subprocess.check_call([bun, 'build', os.path.join(ROOT, 'core', 'lib', 'engine.ts'),
+                           '--target=node', '--format=cjs',
+                           '--outfile', os.path.join(core_dir, 'lib', 'engine.js')], cwd=ROOT)
 
 
 def main():
@@ -52,6 +65,7 @@ def main():
         shutil.copy(os.path.join(ROOT, 'app', f), PLUGIN)
     shutil.copy(os.path.join(ROOT, 'hosts', 'resolve', 'plugin', 'manifest.xml'), PLUGIN)
     copytree(os.path.join(ROOT, 'core'), os.path.join(PLUGIN, 'core'))
+    compile_engine(os.path.join(PLUGIN, 'core'))
     copytree(os.path.join(ROOT, 'hosts'), os.path.join(PLUGIN, 'hosts'))
 
     # app resources
@@ -76,6 +90,10 @@ def main():
         shutil.rmtree(APP)
     copytree(PLUGIN, APP)
     os.remove(os.path.join(APP, 'manifest.xml'))
+    # The app ships build/app/resources (extraResources). It must be the full
+    # set, with the panel, so Setup can install the panel: the panel's own copy
+    # above was taken before plugin/ was added.
+    copytree(RES, os.path.join(APP, 'resources'))
     copytree(os.path.join(ROOT, 'app', 'build-res'), os.path.join(APP, 'build-res'))
 
     version = json.load(open(os.path.join(ROOT, 'app', 'package.json')))['version']

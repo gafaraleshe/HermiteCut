@@ -28,6 +28,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
       - name: Check sources
         run: |
           for f in app/*.js hosts/resolve/*.js core/lib/*.js core/ui/js/*.js; do node --check "$f"; done
@@ -62,6 +65,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - name: Build the Rust engine and put it in the app and panel
+        run: |
+          bun scripts/build-native.ts --release
+          bun scripts/place-native.ts
       - name: Build the Windows installer
         working-directory: build/app
         run: |
@@ -87,6 +97,7 @@ jobs:
     needs: assemble
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: assembled
@@ -94,6 +105,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - name: Build the Rust engine (Apple Silicon and Intel) and put it in the app and panel
+        run: |
+          rustup target add x86_64-apple-darwin
+          bun scripts/build-native.ts --release
+          bun scripts/build-native.ts --release --target x86_64-apple-darwin
+          bun scripts/place-native.ts
       - name: Build the macOS disk images (Apple Silicon and Intel)
         working-directory: build/app
         env:
