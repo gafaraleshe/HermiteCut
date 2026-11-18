@@ -327,13 +327,24 @@
     async function renderSetup() {
         let st = {};
         try { st = await HC.call('setupStatus', {}, { silent: true }); } catch (e) { st = {}; }
+        await licenceCheck();
         $('#suList').innerHTML = SETUP.map(([k, name, action, hint]) => `<div class="su-row"><span class="su-dot ${st[k] ? 'ok' : ''}"></span>
             <div class="su-t"><div>${name}${k === 'scripting' && st.resolve ? ' · ' + esc(st.resolve) : ''}</div><div class="hint">${hint}</div></div>
-            ${action ? `<button class="btn sm" data-act="${action}">${st[k] ? 'Reinstall' : 'Install'}</button>` : ''}</div>`).join('');
+            ${action ? `<button class="btn sm" data-act="${action}">${st[k] ? 'Reinstall' : 'Install'}</button>` : ''}</div>`).join('') +
+            (LIC && LIC.required ? `<div class="su-row"><span class="su-dot ${LIC.valid ? 'ok' : ''}"></span>
+            <div class="su-t"><div>Licence${LIC.displayKey ? ' · ' + esc(LIC.displayKey) : ''}</div><div class="hint">${LIC.valid ? 'Active on this computer. Deactivate it here to move it to another computer.' : 'Not activated on this computer.'}</div></div>
+            <button class="btn sm" data-lic="${LIC.valid ? 'off' : 'on'}">${LIC.valid ? 'Deactivate' : 'Activate'}</button></div>` : '');
         $('#suMode').textContent = st.mode === 'plugin' ? 'Running as the Resolve panel' : 'Running as the HermiteCut app';
     }
     function initSetup() {
         $('#suList').addEventListener('click', async (e) => {
+            const l = e.target.closest('[data-lic]');
+            if (l) {
+                if (l.dataset.lic === 'off') { await HC.call('licenceDeactivate', {}, { button: l }).catch(() => 0); await licenceCheck(); }
+                else $('#licGate').hidden = false;
+                renderSetup();
+                return;
+            }
             const b = e.target.closest('[data-act]'); if (!b) return;
             await HC.call(b.dataset.act, {}, { button: b }).catch(() => 0); renderSetup();
         });
@@ -343,6 +354,40 @@
         });
         $('#suCheck').addEventListener('click', renderSetup);
         renderSetup();
+    }
+
+    // ------------------------------------------------------------ Licence
+    let LIC = null;
+    async function licenceCheck() {
+        try { LIC = await HC.call('licenceStatus', {}, { silent: true }); } catch (e) { LIC = null; }
+        const gate = $('#licGate');
+        if (!gate) return;
+        gate.hidden = !(LIC && LIC.required && !LIC.valid);
+        if (LIC) {
+            $('#licReason').textContent = LIC.reason || 'Enter your licence key to start.';
+            $('#licBuy').textContent = 'Buy HermiteCut — ' + LIC.price;
+        }
+    }
+    function initLicence() {
+        if (!$('#licGate')) return;
+        const go = async () => {
+            const btn = $('#licActivate');
+            $('#licErr').textContent = '';
+            btn.disabled = true; btn.textContent = 'Activating…';
+            try {
+                const r = await window.hermite.call('licenceActivate', { key: $('#licKey').value });
+                if (!r || !r.ok) throw new Error((r && r.error) || 'Activation failed.');
+                $('#licKey').value = '';
+                HC.toast('HermiteCut is activated on this computer', 'ok');
+                await licenceCheck(); renderSetup();
+            } catch (e) { $('#licErr').textContent = e.message; }
+            btn.disabled = false; btn.textContent = 'Activate';
+        };
+        $('#licActivate').addEventListener('click', go);
+        $('#licKey').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+        $('#licBuy').addEventListener('click', () => LIC && window.hermite.win('openExternal', LIC.checkoutUrl));
+        $('#licPortal').addEventListener('click', () => LIC && window.hermite.win('openExternal', LIC.portalUrl));
+        licenceCheck();
     }
 
     // ------------------------------------------------------------ Claude (MCP)
@@ -370,7 +415,7 @@
         try { CAT = await window.hermite.call('catalogue', {}).then(r => (r && r.ok) ? r.result : CAT); } catch (e) { /* */ }
         CAT.templates = CAT.templates || []; CAT.sounds = CAT.sounds || [];
         initTemplates(); renderTemplates();
-        initGrid(); initSound(); renderSounds(); initLibrary(); initCaptionsPlus(); initShorts(); initSetup(); initMcp();
+        initGrid(); initSound(); renderSounds(); initLibrary(); initCaptionsPlus(); initShorts(); initLicence(); initSetup(); initMcp();
     }
     document.addEventListener('DOMContentLoaded', init);
     if (document.readyState !== 'loading') init();

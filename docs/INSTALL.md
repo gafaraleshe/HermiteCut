@@ -30,6 +30,21 @@ Download from the [latest release](https://github.com/gafaraleshe/HermiteCut/rel
      `xattr -cr /Applications/HermiteCut.app`
 3. In HermiteCut, go to **Setup → Install everything**, then restart Resolve.
 
+### Activate your licence
+
+HermiteCut needs a licence key (£30, or $50 in the US, one-time). Buy it
+at [cut.hermitelabs.com](https://cut.hermitelabs.com/#purchase); Polar emails
+your key and your download links.
+
+1. Open HermiteCut. The first time, it asks for your key.
+2. Paste the key and click **Activate**. That's it: HermiteCut now works on
+   this computer, and keeps working offline.
+3. One key works on **two computers**. To move it, open **Setup → Licence**
+   on the old computer and click **Deactivate**, then activate on the new one.
+
+Lost your key? It's in your Polar account: click **Already bought? Find your
+key** on the licence screen.
+
 ### Use HermiteCut with Claude
 
 HermiteCut runs a small MCP server while it's open (the app or its panel in

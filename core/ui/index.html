@@ -331,6 +331,23 @@
       </div>
     </section>
   </main>
+
+  <!-- ============ Licence (shown when this build needs a key and none is active) ============ -->
+  <div class="lic-gate" id="licGate" hidden role="dialog" aria-modal="true" aria-labelledby="licTitle">
+    <div class="lic-card">
+      <div class="wordmark">HERMITE <span class="sub">CUT</span></div>
+      <h2 id="licTitle">Activate HermiteCut</h2>
+      <p class="hint" id="licReason">Enter your licence key to start.</p>
+      <input id="licKey" class="lic-input" type="text" placeholder="Paste your licence key" autocomplete="off" spellcheck="false" aria-label="Licence key">
+      <button class="cta glow" id="licActivate">Activate</button>
+      <div class="lic-err" id="licErr" role="alert"></div>
+      <div class="lic-links">
+        <button class="btn sm" id="licBuy">Buy HermiteCut</button>
+        <button class="btn sm ghost" id="licPortal">Already bought? Find your key</button>
+      </div>
+      <p class="hint">One key works on two computers, and keeps working offline once activated.</p>
+    </div>
+  </div>
 </div>
 
 <div class="toasts" id="toasts"></div>
@@ -347,7 +364,7 @@
     <div class="label">Custom “Main tools” set</div>
     <div class="mod-toggles" id="sMods"></div>
     <div class="row"><button class="btn" id="sLog">Open log file</button><button class="btn" id="sReset">Reset all settings</button></div>
-    <div class="about">HermiteCut 2.1.0 · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
+    <div class="about">HermiteCut 2.2.0 · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
       Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1).<br>
       Open from <b>Workspace → Workflow Integrations → HermiteCut</b>.</div>
   </div>

@@ -42,7 +42,18 @@ def copytree(src, dst):
 TS_ENTRIES = [
     ('lib/engine.ts', 'lib/engine.js'),   # loads the Rust engine
     ('mcp/server.ts', 'mcp/server.js'),   # the local MCP server for Claude
+    ('licence/licence.ts', 'licence/licence.js'),  # the Polar licence key
 ]
+
+# Baked into the build (bun build --define), from the environment. With no
+# HC_POLAR_ORGANIZATION_ID, licensing is off and HermiteCut needs no key.
+LICENCE_SETTINGS = {
+    'HC_POLAR_ORGANIZATION_ID': '',
+    'HC_POLAR_API': 'https://api.polar.sh',
+    'HC_POLAR_CHECKOUT_URL': 'https://cut.hermitelabs.com/#purchase',
+    'HC_POLAR_PORTAL_URL': 'https://cut.hermitelabs.com/#purchase',
+    'HC_PRICE': '£30',
+}
 
 
 def compile_engine(core_dir):
@@ -53,10 +64,15 @@ def compile_engine(core_dir):
     if not bun:
         print('warning: Bun not found, so this build has no Rust engine or MCP server (https://bun.sh)')
         return
+    defines = []
+    for name, default in LICENCE_SETTINGS.items():
+        defines += ['--define', 'process.env.%s=%s' % (name, json.dumps(os.environ.get(name) or default))]
     for src, out in TS_ENTRIES:
         subprocess.check_call([bun, 'build', os.path.join(ROOT, 'core', src),
-                               '--target=node', '--format=cjs',
+                               '--target=node', '--format=cjs', *defines,
                                '--outfile', os.path.join(core_dir, out)], cwd=ROOT)
+    org = os.environ.get('HC_POLAR_ORGANIZATION_ID')
+    print('Licensing:', 'on (Polar organisation %s)' % org if org else 'off (no HC_POLAR_ORGANIZATION_ID)')
 
 
 def main():

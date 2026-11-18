@@ -35,6 +35,14 @@ jobs:
         run: |
           for f in app/*.js hosts/resolve/*.js core/lib/*.js core/ui/js/*.js; do node --check "$f"; done
       - name: Build the pack, sounds, panel and app project
+        # Licensing: set these as repository variables (Settings > Secrets and
+        # variables > Actions > Variables). Without POLAR_ORGANIZATION_ID the
+        # build needs no licence key.
+        env:
+          HC_POLAR_ORGANIZATION_ID: ${{ vars.POLAR_ORGANIZATION_ID }}
+          HC_POLAR_CHECKOUT_URL: ${{ vars.POLAR_CHECKOUT_URL }}
+          HC_POLAR_PORTAL_URL: ${{ vars.POLAR_PORTAL_URL }}
+          HC_PRICE: ${{ vars.HERMITECUT_PRICE }}
         run: |
           pip install numpy==2.1.3
           python scripts/assemble.py
