@@ -96,6 +96,9 @@
         ['page', 'DLV', 'Deliver page', 'page', () => 'deliver']
     ];
     const key = (a) => a[0] + ':' + a[1];
+    // For the command palette (shell.js).
+    const CAT_NAMES = Object.fromEntries(CATS);
+    window.HC.actions = A.map(a => ({ name: a[2], group: CAT_NAMES[a[3]] || 'Actions', run: () => call('quick', { id: a[0], arg: a[4] ? a[4]() : undefined }).catch(() => {}) }));
     let cat = store.get('q.cat', 'timing');
     let favs = new Set(store.get('q.favs', ['marker:MRK', 'fadeBoth:F-I/O', 'dissolveOut:DIS▸', 'speed:200%', 'textPlus:TXT+', 'normalize:LUFS']));
 

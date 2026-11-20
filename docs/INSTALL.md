@@ -153,6 +153,10 @@ Restart Resolve and open **Workspace → Workflow Integrations → HermiteCut**.
 - The tool-set tabs at the top switch between **Main tools**, **Motion**,
   **Beats & Captions** and **All**. You can choose which tools appear in
   *Main tools* under **Settings → Custom "Main tools" set**.
+- Press **Ctrl+K** (**⌘K** on a Mac) to search every tool, action and setting
+  by name. **Ctrl/⌘ /** lists the other shortcuts.
+- HermiteCut tells you when a new version is out (a bar under the title).
+  **Settings → Updates** turns this off or checks now.
 
 ## Troubleshooting
 
@@ -163,4 +167,5 @@ Restart Resolve and open **Workspace → Workflow Integrations → HermiteCut**.
 | "WorkflowIntegration.node could not be loaded" | Reinstall. The bridge module must come from the **same** Resolve version that is installed. After a big Resolve update, run the installer again. |
 | Panel says *Not connected* | Open a project and a timeline, then press refresh (↻). |
 | An action reports an error | Most tools need **selected clips on the Edit page**. **Settings → Open log file** shows the details. |
+| You need help from support | **Settings → Copy diagnostics** and paste it into your email. It lists versions, the Resolve connection and the recent log; it never includes your licence key. |
 | Panel hides behind Resolve | Toggle the pin button. Resolve's plugin host sometimes drops "always on top", and the panel turns it back on when it is shown or focused. |

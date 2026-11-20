@@ -10,7 +10,7 @@
 // hosts can be added later (docs/MULTI_HOST_PLAN.md).
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, Menu, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -37,6 +37,25 @@ try {
 } catch (e) { /* ignore */ }
 
 const MAC = process.platform === 'darwin';
+// Resolve loads the panel with WorkflowIntegration.node beside main.js; the
+// standalone app owns its menus, single instance and window memory.
+const PANEL = fs.existsSync(path.join(__dirname, 'WorkflowIntegration.node'));
+const shellSvc = require(path.join(__dirname, 'shell.js'));
+const HELP_URL = 'https://cut.hermitelabs.com/#faq';
+const NOTES_URL = 'https://cut.hermitelabs.com/changelog';
+
+// One HermiteCut at a time: opening it again brings the window forward.
+const FIRST_INSTANCE = PANEL || app.requestSingleInstanceLock();
+if (!FIRST_INSTANCE) {
+    app.quit();
+} else {
+    app.on('second-instance', () => {
+        if (!mainWindow) return;
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show(); mainWindow.focus();
+    });
+}
+
 let pinned = true;
 let mainWindow = null;
 let host = null;
@@ -44,7 +63,9 @@ let host = null;
 function logFile() {
     return path.join(app.getPath('userData'), 'hermitecut-log.txt');
 }
+let logRotated = false;
 function log(msg) {
+    if (!logRotated) { logRotated = true; shellSvc.rotateLog(logFile()); }
     try {
         fs.appendFileSync(logFile(), new Date().toISOString() + '  ' + msg + os.EOL);
     } catch (e) { /* ignore */ }
@@ -111,6 +132,33 @@ function registerIpc() {
         return r.canceled ? null : r.filePaths[0];
     });
 
+    // App-level actions: never locked by the licence, so a customer can
+    // always update and send diagnostics.
+    ipcMain.handle('hc:app', async (_ev, cmd, val) => {
+        try {
+            switch (cmd) {
+                case 'info':
+                    return { ok: true, result: { version: app.getVersion(), platform: process.platform, arch: process.arch, mode: PANEL ? 'panel' : 'app', helpUrl: HELP_URL, notesUrl: NOTES_URL } };
+                case 'checkUpdate':
+                    return { ok: true, result: await shellSvc.checkForUpdate(app.getVersion()) };
+                case 'diagnostics':
+                    return { ok: true, result: await diagnosticsText() };
+                case 'copyDiagnostics':
+                    clipboard.writeText(await diagnosticsText());
+                    return { ok: true, result: true };
+                case 'saveDiagnostics': {
+                    const r = await dialog.showSaveDialog(mainWindow, { title: 'Save diagnostics', defaultPath: 'HermiteCut-diagnostics.txt', filters: [{ name: 'Text', extensions: ['txt'] }] });
+                    if (r.canceled || !r.filePath) return { ok: true, result: null };
+                    fs.writeFileSync(r.filePath, await diagnosticsText());
+                    return { ok: true, result: r.filePath };
+                }
+            }
+            return { ok: false, error: 'Unknown command: ' + cmd };
+        } catch (e) {
+            return { ok: false, error: (e && e.message) || String(e) };
+        }
+    });
+
     ipcMain.handle('hc:window', async (_ev, cmd, val) => {
         if (!mainWindow) return false;
         switch (cmd) {
@@ -130,6 +178,10 @@ function registerIpc() {
     });
 }
 
+function diagnosticsText() {
+    return shellSvc.diagnostics({ app, mode: PANEL ? 'Resolve panel' : 'app', api: host ? host.api : {}, logFile: logFile() });
+}
+
 // Resolve's plugin host does not keep Electron's always-on-top flag reliably,
 // so re-assert it whenever the window is shown, restored or loses focus.
 function applyPin() {
@@ -141,9 +193,11 @@ function applyPin() {
 }
 
 function createWindow() {
+    const ws = PANEL ? null : shellSvc.windowState(app, screen, { width: 1120, height: 720, minWidth: 380, minHeight: 420 });
     mainWindow = new BrowserWindow({
         width: 1120,
         height: 720,
+        ...(ws ? ws.bounds : {}),
         minWidth: 380,
         minHeight: 420,
         // macOS: the system's traffic lights over a hidden title bar. Elsewhere
@@ -163,6 +217,8 @@ function createWindow() {
         }
     });
     mainWindow.setMenu(null);
+    if (ws) ws.track(mainWindow);
+    shellSvc.guardWindow(mainWindow, log);
     mainWindow.once('ready-to-show', () => { mainWindow.show(); applyPin(); setTimeout(applyPin, 600); });
     ['show', 'restore', 'blur'].forEach(ev => mainWindow.on(ev, () => setTimeout(applyPin, ev === 'blur' ? 30 : 0)));
     mainWindow.on('close', () => {
@@ -222,7 +278,20 @@ function setupLicence() {
     }
 }
 
+// Sends a menu command to the page (core/ui/js/shell.js).
+function sendCommand(cmd) {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (cmd === 'openLog') { shell.openPath(logFile()); return; }
+    mainWindow.show();
+    mainWindow.webContents.send('hc:command', cmd);
+}
+
+shellSvc.guardProcess((m) => log(m));
+
 app.whenReady().then(() => {
+    if (!FIRST_INSTANCE) return;
+    if (MAC && !PANEL) shellSvc.macMenu(Menu, app, sendCommand);
+    log('Started HermiteCut ' + app.getVersion() + (PANEL ? ' (Resolve panel)' : '') + ' on ' + process.platform + ' ' + process.arch);
     registerIpc();
     setupLicence();
     startMcp();

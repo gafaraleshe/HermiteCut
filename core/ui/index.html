@@ -31,9 +31,17 @@
         <button data-set="setup">Setup</button>
         <button data-set="all">All</button>
       </div>
-      <button class="ibtn" id="btnSettings" data-tip="Settings" data-icon="gear"></button>
+      <button class="ibtn" id="btnPalette" data-tip="Search tools and actions (Ctrl+K)" aria-label="Search tools and actions" data-icon="search"></button>
+      <button class="ibtn" id="btnSettings" data-tip="Settings" aria-label="Settings" data-icon="gear"></button>
     </div>
   </header>
+
+  <div class="update-bar" id="updateBar" hidden role="status">
+    <span class="dot"></span><span id="updateText">A new version of HermiteCut is available.</span>
+    <button class="btn small" id="updateNotes">What’s new</button>
+    <button class="btn small accent" id="updateGet">Download</button>
+    <button class="ibtn" id="updateClose" aria-label="Dismiss" data-icon="x"></button>
+  </div>
 
   <div class="ctx" id="ctx">
     <span class="dot" id="ctxDot"></span>
@@ -350,7 +358,46 @@
   </div>
 </div>
 
-<div class="toasts" id="toasts"></div>
+<div class="palette" id="palette" hidden role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette-box">
+    <input type="text" id="palInput" placeholder="Search tools, actions and settings…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="palList">
+    <div class="palette-list" id="palList" role="listbox"></div>
+    <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> run</span><span><kbd>Esc</kbd> close</span></div>
+  </div>
+</div>
+
+<div class="modal" id="sheetShortcuts" role="dialog" aria-modal="true" aria-labelledby="kTitle">
+  <div class="sheet">
+    <div class="row"><h3 id="kTitle">Keyboard shortcuts</h3><span></span><button class="ibtn fixed" data-close aria-label="Close" data-icon="x"></button></div>
+    <div class="keys" id="keyList"></div>
+  </div>
+</div>
+
+<div class="modal" id="sheetAbout" role="dialog" aria-modal="true" aria-labelledby="abTitle">
+  <div class="sheet about-sheet">
+    <div class="row"><span></span><span></span><button class="ibtn fixed" data-close aria-label="Close" data-icon="x"></button></div>
+    <img src="img/icon.png" alt="" class="about-icon">
+    <h3 id="abTitle">HermiteCut</h3>
+    <div class="about-ver" id="abVersion"></div>
+    <p class="hint">The editing toolkit for DaVinci Resolve, by Hermite Labs.</p>
+    <div class="row"><button class="btn" id="abNotes">What’s new</button><button class="btn" id="abHelp">Help</button><button class="btn" id="abUpdate">Check for updates</button></div>
+    <p class="hint">Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1). © 2026 Gafar / Hermite Labs.</p>
+  </div>
+</div>
+
+<div class="modal" id="sheetWelcome" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="sheet welcome">
+    <h3 id="wTitle">Welcome to HermiteCut</h3>
+    <ol class="steps">
+      <li><b>Open DaVinci Resolve</b> with a project. HermiteCut connects by itself; the dot at the top turns green.</li>
+      <li><b>Setup → Install everything</b> adds the templates, the Resolve panel, the sounds and the title fonts. Restart Resolve once.</li>
+      <li>Press <kbd data-mod>Ctrl</kbd> <kbd>K</kbd> anywhere to find any tool or action by name.</li>
+    </ol>
+    <div class="row"><button class="btn" id="wSetup">Open Setup</button><span></span><button class="cta" id="wGo">Start editing</button></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <div class="tip" id="tip"></div>
 
 <div class="modal" id="settings">
@@ -363,8 +410,13 @@
     <label class="check"><input type="checkbox" id="sPinDefault" checked> Keep window on top of Resolve</label>
     <div class="label">Custom “Main tools” set</div>
     <div class="mod-toggles" id="sMods"></div>
+    <div class="label">Updates</div>
+    <label class="check"><input type="checkbox" id="sAutoUpdate" checked> Check for updates automatically</label>
+    <div class="row"><button class="btn" id="sCheckUpdate">Check for updates</button><button class="btn" id="sShortcuts">Keyboard shortcuts</button></div>
+    <div class="label">Support</div>
+    <div class="row"><button class="btn" id="sDiag">Copy diagnostics</button><button class="btn" id="sDiagSave">Save diagnostics…</button></div>
     <div class="row"><button class="btn" id="sLog">Open log file</button><button class="btn" id="sReset">Reset all settings</button></div>
-    <div class="about">HermiteCut 2.2.0 · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
+    <div class="about"><span id="aboutVersion">HermiteCut 2.3.0</span> · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
       Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1).<br>
       Open from <b>Workspace → Workflow Integrations → HermiteCut</b>.</div>
   </div>
@@ -381,5 +433,6 @@
 <script src="js/captions.js"></script>
 <script src="js/studio.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/shell.js"></script>
 </body>
 </html>
