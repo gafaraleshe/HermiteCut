@@ -7,5 +7,8 @@ contextBridge.exposeInMainWorld('hermite', {
     openFile: (opts) => ipcRenderer.invoke('hc:openFile', opts),
     saveFile: (opts) => ipcRenderer.invoke('hc:saveFile', opts),
     chooseFolder: (opts) => ipcRenderer.invoke('hc:chooseFolder', opts),
-    win: (cmd, val) => ipcRenderer.invoke('hc:window', cmd, val)
+    win: (cmd, val) => ipcRenderer.invoke('hc:window', cmd, val),
+    app: (cmd, val) => ipcRenderer.invoke('hc:app', cmd, val),
+    // Menu commands from the main process (macOS menu bar).
+    onCommand: (fn) => { ipcRenderer.on('hc:command', (_e, cmd) => fn(cmd)); }
 });

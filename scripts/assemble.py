@@ -85,7 +85,7 @@ def main():
     if os.path.exists(PLUGIN):
         shutil.rmtree(PLUGIN)
     os.makedirs(PLUGIN)
-    for f in ('main.js', 'preload.js', 'package.json'):
+    for f in ('main.js', 'shell.js', 'preload.js', 'package.json'):
         shutil.copy(os.path.join(ROOT, 'app', f), PLUGIN)
     shutil.copy(os.path.join(ROOT, 'hosts', 'resolve', 'plugin', 'manifest.xml'), PLUGIN)
     copytree(os.path.join(ROOT, 'core'), os.path.join(PLUGIN, 'core'))
