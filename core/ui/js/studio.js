@@ -392,6 +392,28 @@
 
     // ------------------------------------------------------------ Claude (MCP)
     let MCP = null;
+    // Claude: the app's MCP server, and one-click connection of Claude Desktop
+    // and Claude Code (app/claude.js) on macOS and Windows.
+    const appCall = async (cmd) => {
+        if (!window.hermite.app) throw new Error('Update HermiteCut to connect Claude from here.');
+        const r = await window.hermite.app(cmd);
+        if (!r || !r.ok) throw new Error((r && r.error) || 'Unknown error');
+        return r.result;
+    };
+    function paintClient(kind, st, on) {
+        const dot = $('#mcp' + kind + 'Dot'), hint = $('#mcp' + kind + 'Hint'), btn = $('#mcp' + kind + 'Go');
+        const name = kind === 'Desk' ? 'Claude Desktop' : 'Claude Code';
+        dot.classList.toggle('ok', !!(st && st.connected));
+        btn.disabled = !on || (kind === 'Code' && st && !st.installed);
+        btn.dataset.connected = st && st.connected ? '1' : '';
+        btn.textContent = st && st.connected ? 'Disconnect' : (st && st.stale ? 'Repair' : 'Connect');
+        if (!st) { hint.textContent = 'Not available in this build.'; return; }
+        if (st.error) hint.textContent = st.error;
+        else if (st.connected) hint.textContent = kind === 'Desk' ? 'Connected. Restart Claude Desktop if HermiteCut isn’t in its tools yet.' : 'Connected. Start a new Claude Code session to use it.';
+        else if (st.stale) hint.textContent = 'Set up for an older HermiteCut. Repair to fix it.';
+        else if (kind === 'Code' && !st.installed) hint.textContent = 'Claude Code isn’t installed. Use “Set it up by hand” if it is.';
+        else hint.textContent = kind === 'Desk' && !st.installed ? 'Connect now; it works once you install ' + name + '.' : 'One click adds HermiteCut to ' + name + '.';
+    }
     async function renderMcp() {
         try { MCP = await HC.call('mcpInfo', {}, { silent: true }); } catch (e) { MCP = null; }
         const on = !!(MCP && MCP.running);
@@ -399,14 +421,38 @@
         $('#mcpState').textContent = on ? `Ready for Claude · ${MCP.tools} tools on this computer` : 'Not running' + (MCP && MCP.reason ? ' · ' + MCP.reason : '');
         $('#mcpCopyCode').disabled = !on;
         $('#mcpCopyDesktop').disabled = !(on && MCP.bridge);
-        $('#mcpCopyDesktop').title = on && !MCP.bridge ? 'The Claude Desktop bridge is not in this build. Use Claude Code, or update HermiteCut.' : '';
+        let st = null;
+        try { st = await appCall('claudeStatus'); } catch (e) { /* older main process */ }
+        const hasBridge = !!(MCP && MCP.bridge);
+        paintClient('Desk', st && st.desktop, on && hasBridge);
+        paintClient('Code', st && st.code, on && hasBridge);
+        if (on && !hasBridge) $('#mcpDeskHint').textContent = 'The Claude bridge isn’t in this build. Reinstall HermiteCut.';
+    }
+    async function toggleClient(kind, btn) {
+        const connected = btn.dataset.connected === '1';
+        const cmd = 'claude' + (connected ? 'Disconnect' : 'Connect') + (kind === 'Desk' ? 'Desktop' : 'Code');
+        const label = btn.textContent;
+        btn.disabled = true; btn.textContent = connected ? 'Disconnecting…' : 'Connecting…';
+        try {
+            await appCall(cmd);
+            const name = kind === 'Desk' ? 'Claude Desktop' : 'Claude Code';
+            HC.toast(connected ? name + ' disconnected' : (kind === 'Desk' ? 'Connected. Quit and reopen Claude Desktop to start using HermiteCut' : 'Connected. Start a new Claude Code session'), 'ok');
+        } catch (e) {
+            HC.toast(e.message, 'err');
+            btn.textContent = label;
+        }
+        renderMcp();
     }
     function initMcp() {
         if (!$('#mcpState')) return;
         const copy = async (text, what) => { await window.hermite.win('copy', text); HC.toast(what + ' copied', 'ok'); };
         $('#mcpCopyCode').addEventListener('click', () => MCP && copy(MCP.claudeCode, 'Claude Code command'));
         $('#mcpCopyDesktop').addEventListener('click', () => MCP && copy(MCP.claudeDesktop, 'Claude Desktop config'));
+        $('#mcpDeskGo').addEventListener('click', (e) => toggleClient('Desk', e.currentTarget));
+        $('#mcpCodeGo').addEventListener('click', (e) => toggleClient('Code', e.currentTarget));
         $('#mcpCheck').addEventListener('click', renderMcp);
+        // Claude may have been installed or changed while HermiteCut was open.
+        window.addEventListener('focus', () => { if (!$('.card[data-mod="claude"]').classList.contains('hidden')) renderMcp(); });
         renderMcp();
     }
 

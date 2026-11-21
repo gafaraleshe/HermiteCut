@@ -1,7 +1,7 @@
 {
     "name": "hermitecut",
     "productName": "HermiteCut",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "description": "The editing toolkit for DaVinci Resolve: effects, transitions, titles, Grid Reveal, sound, motion, beats and captions.",
     "author": "Gafar (Hermite Labs)",
     "homepage": "https://cut.hermitelabs.com",
@@ -26,7 +26,7 @@
         "copyright": "Copyright © 2026 Gafar / Hermite Labs",
         "asar": false,
         "directories": { "output": "dist", "buildResources": "build-res" },
-        "files": ["main.js", "shell.js", "preload.js", "package.json", "core/**/*", "hosts/**/*"],
+        "files": ["main.js", "shell.js", "claude.js", "preload.js", "package.json", "core/**/*", "hosts/**/*"],
         "extraResources": [{ "from": "resources", "to": "hermitecut" }],
         "afterPack": "build-res/afterpack.js",
         "win": { "target": [{ "target": "nsis", "arch": ["x64"] }], "icon": "build-res/icon.png" },

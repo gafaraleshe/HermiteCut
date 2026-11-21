@@ -332,9 +332,15 @@
       </div>
       <div class="card-b">
         <div class="su-row"><span class="su-dot" id="mcpDot"></span>
-          <div class="su-t"><div id="mcpState">Checking…</div><div class="hint">Claude can use HermiteCut in Resolve: apply templates, add transitions and titles, place sounds and run actions on the selected clips. It only listens on this computer and needs a private key, which these buttons include.</div></div></div>
-        <div class="mcp-row"><div><b>Claude Code</b><div class="hint">Paste into a terminal.</div></div><button class="btn sm" id="mcpCopyCode">Copy command</button></div>
-        <div class="mcp-row"><div><b>Claude Desktop</b><div class="hint">Settings → Developer → Edit Config, paste into claude_desktop_config.json, then restart Claude.</div></div><button class="btn sm" id="mcpCopyDesktop">Copy config</button></div>
+          <div class="su-t"><div id="mcpState">Checking…</div><div class="hint">Claude can use HermiteCut in Resolve: apply templates, add transitions and titles, place sounds and run actions on the selected clips. It only listens on this computer, behind a private key that never leaves it.</div></div></div>
+        <div class="mcp-row"><span class="su-dot" id="mcpDeskDot"></span><div class="mcp-t"><b>Claude Desktop</b><div class="hint" id="mcpDeskHint">Checking…</div></div>
+          <button class="btn sm" id="mcpDeskGo">Connect</button></div>
+        <div class="mcp-row"><span class="su-dot" id="mcpCodeDot"></span><div class="mcp-t"><b>Claude Code</b><div class="hint" id="mcpCodeHint">Checking…</div></div>
+          <button class="btn sm" id="mcpCodeGo">Connect</button></div>
+        <details class="mcp-manual"><summary>Set it up by hand</summary>
+          <div class="mcp-row"><div class="mcp-t"><div class="hint">Claude Desktop: Settings → Developer → Edit Config, paste into claude_desktop_config.json, restart Claude.</div></div><button class="btn sm" id="mcpCopyDesktop">Copy config</button></div>
+          <div class="mcp-row"><div class="mcp-t"><div class="hint">Claude Code: paste into a terminal.</div></div><button class="btn sm" id="mcpCopyCode">Copy command</button></div>
+        </details>
         <div class="hint">Keep HermiteCut (or its panel in Resolve) open while you work with Claude.</div>
       </div>
     </section>
@@ -416,7 +422,7 @@
     <div class="label">Support</div>
     <div class="row"><button class="btn" id="sDiag">Copy diagnostics</button><button class="btn" id="sDiagSave">Save diagnostics…</button></div>
     <div class="row"><button class="btn" id="sLog">Open log file</button><button class="btn" id="sReset">Reset all settings</button></div>
-    <div class="about"><span id="aboutVersion">HermiteCut 2.3.0</span> · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
+    <div class="about"><span id="aboutVersion">HermiteCut 2.4.0</span> · the editing toolkit for DaVinci Resolve, by Hermite Labs.<br>
       Fonts: Archivo, Outfit, Montserrat (SIL OFL 1.1).<br>
       Open from <b>Workspace → Workflow Integrations → HermiteCut</b>.</div>
   </div>
