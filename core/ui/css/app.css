@@ -381,3 +381,11 @@ kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Claude card: one row per Claude app */
+.mcp-row .mcp-t { flex: 1; min-width: 0; }
+.mcp-row > .su-dot { align-self: flex-start; margin-top: 4px; }
+.mcp-manual { border-top: 1px solid var(--line); padding-top: 8px; color: var(--faint); }
+.mcp-manual summary { cursor: pointer; font-size: 11.5px; padding: 2px 0; }
+.mcp-manual summary:hover { color: var(--text); }
+.mcp-manual .mcp-row:first-of-type { border-top: 0; }

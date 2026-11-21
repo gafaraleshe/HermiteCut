@@ -52,17 +52,26 @@ Resolve), so Claude can use it: apply templates and transitions, insert
 titles, place sounds and run actions on the clips you've selected. It only
 listens on your own computer (127.0.0.1) and needs a private key.
 
-1. In HermiteCut, open **Setup**. The **Claude** card says *Ready for Claude*.
-2. **Claude Code:** click **Copy command** and paste it into a terminal.
-   **Claude Desktop:** click **Copy config**, then in Claude Desktop go to
-   **Settings → Developer → Edit Config**, paste it into
-   `claude_desktop_config.json` (merge it with any servers already there) and
-   restart Claude.
+1. In HermiteCut, open **Setup** (or press Ctrl/⌘ K and type *Claude*). The
+   **Claude** card says *Ready for Claude*.
+2. Click **Connect** next to **Claude Desktop**, then quit and reopen Claude
+   Desktop. Click **Connect** next to **Claude Code** if you use it, then start
+   a new Claude Code session. That's all; the same buttons work on Mac and
+   Windows, including the Microsoft Store version of Claude Desktop.
 3. Keep HermiteCut open while you work. Ask Claude, for example, "add a Whip
    transition at every cut of the selected clips and a whoosh on each cut".
 
-On a Mac, if Claude Desktop can't start the bridge, run
-`xattr -dr com.apple.quarantine /Applications/HermiteCut.app` once.
+What Connect does: it copies HermiteCut's small Claude bridge to
+`~/.hermitecut/bin` (so updating or moving HermiteCut never breaks the
+connection) and adds a `hermitecut` entry to Claude's settings, keeping
+everything else and saving a copy of Claude Desktop's original settings
+(`claude_desktop_config.json.before-hermitecut`). No key is written into
+Claude's settings. **Disconnect** removes the entry again.
+
+If Claude Desktop's settings file has a mistake in it, HermiteCut leaves it
+alone and says so; fix it in Claude Desktop (Settings → Developer → Edit
+Config) and click Connect again. To set things up yourself, open **Set it up
+by hand** on the card for the config and the command to copy.
 
 ### The connection to Resolve
 

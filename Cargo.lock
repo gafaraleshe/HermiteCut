@@ -128,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "hc-core"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "miniz_oxide",
  "serde",
@@ -137,21 +137,21 @@ dependencies = [
 
 [[package]]
 name = "hc-installer"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "hc-paths",
 ]
 
 [[package]]
 name = "hc-mcp"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "hc-node"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "hc-core",
  "hc-paths",
@@ -164,11 +164,11 @@ dependencies = [
 
 [[package]]
 name = "hc-paths"
-version = "2.3.0"
+version = "2.4.0"
 
 [[package]]
 name = "hc-resolve"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "hc-paths",
  "serde_json",

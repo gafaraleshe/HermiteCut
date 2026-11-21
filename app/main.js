@@ -41,6 +41,8 @@ const MAC = process.platform === 'darwin';
 // standalone app owns its menus, single instance and window memory.
 const PANEL = fs.existsSync(path.join(__dirname, 'WorkflowIntegration.node'));
 const shellSvc = require(path.join(__dirname, 'shell.js'));
+const claudeSvc = require(path.join(__dirname, 'claude.js'));
+let claude = null; // set once paths are known (registerIpc)
 const HELP_URL = 'https://cut.hermitelabs.com/#faq';
 const NOTES_URL = 'https://cut.hermitelabs.com/changelog';
 
@@ -81,6 +83,10 @@ function registerIpc() {
             .then(i => log('Engine: ' + (i.engine === 'rust' ? 'Rust ' + i.version : 'JavaScript (' + i.reason + ')')))
             .catch(() => 0);
     }
+
+    claude = claudeSvc.create({ nativeDir: path.join(ROOT, 'core', 'native'), log });
+    // After an update, refresh the bridge Claude already uses.
+    if (claude.status().bridgeInstalled) claude.installBridge().catch(e => log('Claude bridge refresh: ' + e.message));
 
     ipcMain.handle('hc:call', async (_ev, name, args) => {
         const fn = host.api[name];
@@ -139,6 +145,17 @@ function registerIpc() {
             switch (cmd) {
                 case 'info':
                     return { ok: true, result: { version: app.getVersion(), platform: process.platform, arch: process.arch, mode: PANEL ? 'panel' : 'app', helpUrl: HELP_URL, notesUrl: NOTES_URL } };
+                // Connecting Claude (app/claude.js).
+                case 'claudeStatus':
+                    return { ok: true, result: claude.status() };
+                case 'claudeConnectDesktop':
+                    return { ok: true, result: await claude.connectDesktop() };
+                case 'claudeDisconnectDesktop':
+                    return { ok: true, result: claude.disconnectDesktop() };
+                case 'claudeConnectCode':
+                    return { ok: true, result: await claude.connectCode() };
+                case 'claudeDisconnectCode':
+                    return { ok: true, result: await claude.disconnectCode() };
                 case 'checkUpdate':
                     return { ok: true, result: await shellSvc.checkForUpdate(app.getVersion()) };
                 case 'diagnostics':
@@ -246,8 +263,8 @@ async function startMcp() {
         const bridge = bridgePath();
         return {
             running: true, url: mcp.url, port: mcp.port, tools: mcp.tools.length, bridge: fs.existsSync(bridge) ? bridge : null,
-            claudeCode: 'claude mcp add --transport http hermitecut ' + mcp.url + ' --header "Authorization: Bearer ' + mcp.token + '"',
-            claudeDesktop: JSON.stringify({ mcpServers: { hermitecut: { command: bridge } } }, null, 2)
+            claudeCode: 'claude mcp add --scope user hermitecut -- "' + claude.bridgePath() + '"',
+            claudeDesktop: JSON.stringify({ mcpServers: { hermitecut: { command: claude.bridgePath() } } }, null, 2)
         };
     };
     try {
